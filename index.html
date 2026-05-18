@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Local Translator - HY-MT1.5</title>
+  <title>로컬 번역기 - HY-MT1.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
@@ -687,29 +687,29 @@
   <div class="shell">
     <header>
       <div class="topbar">
-        <div class="brand" aria-label="Local Translator">
+        <div class="brand" aria-label="로컬 번역기">
           <span class="brand-mark">T</span>
-          <span>Local Translator</span>
+          <span>로컬 번역기</span>
         </div>
         <div class="top-actions">
-          <a class="model-link" href="https://github.com/echosoar/local-trans" target="_blank" rel="noopener">Github</a>
-          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="true" aria-label="Switch to white mode">
+          <a class="model-link" href="https://github.com/tchinso/WebTrans" target="_blank" rel="noopener">GitHub</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="true" aria-label="화이트 모드로 전환">
             <span class="theme-track" aria-hidden="true"><span class="theme-thumb"></span></span>
-            <span id="theme-label">Dark</span>
+            <span id="theme-label">다크</span>
           </button>
         </div>
       </div>
 
       <div class="app-head">
-        <h1><span class="lime-chip">Local</span> Translator</h1>
+        <h1><span class="lime-chip">로컬</span> 번역기</h1>
         <p class="subtitle">
-          Powered by <strong>HY-MT1.5-1.8B-ONNX</strong>. Runs entirely in your browser with Japanese to Korean ready by default.
+          <strong>HY-MT1.5-1.8B-ONNX</strong> 기반으로 브라우저 안에서만 실행됩니다. 기본 번역 방향은 일본어에서 한국어입니다.
         </p>
         <span class="privacy-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
           </svg>
-          Your text never leaves this device
+          입력한 텍스트는 이 기기를 벗어나지 않습니다
         </span>
       </div>
     </header>
@@ -718,17 +718,17 @@
       <section class="card" id="loader-section" aria-labelledby="loader-title">
         <div class="loader-header">
           <div>
-            <h2 id="loader-title">Load Translation Model</h2>
-            <p class="section-note">The model downloads once, then runs locally.</p>
+            <h2 id="loader-title">번역 모델 불러오기</h2>
+            <p class="section-note">모델은 한 번 다운로드한 뒤 로컬에서 실행됩니다.</p>
           </div>
-          <span class="device-pill" id="device-pill">Detecting...</span>
+          <span class="device-pill" id="device-pill">감지 중...</span>
         </div>
 
         <div class="progress-bar-wrap" aria-hidden="true">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
         <div class="progress-label">
-          <span id="progress-text">Ready to load</span>
+          <span id="progress-text">불러올 준비 완료</span>
           <span id="progress-pct">0%</span>
         </div>
 
@@ -736,69 +736,69 @@
         <div id="error-box"></div>
 
         <button class="load-btn" id="load-btn" type="button">
-          Download &amp; Load Model (~1 GB)
+          모델 다운로드 및 불러오기 (~1 GB)
         </button>
       </section>
 
       <section class="card" id="translator-section" aria-labelledby="translator-title">
         <div class="loader-header">
           <div>
-            <h2 id="translator-title">Translate</h2>
-            <p class="section-note">Default route: Japanese to Korean.</p>
+            <h2 id="translator-title">번역</h2>
+            <p class="section-note">기본 방향: 일본어에서 한국어로 번역합니다.</p>
           </div>
         </div>
 
         <div class="lang-row">
           <div class="field-group">
-            <label for="src-lang">From</label>
+            <label for="src-lang">원문 언어</label>
             <select id="src-lang">
-              <option value="Auto">Auto Detect</option>
-              <option value="Chinese">Chinese</option>
-              <option value="English">English</option>
-              <option value="Japanese" selected>Japanese</option>
-              <option value="Korean">Korean</option>
-              <option value="French">French</option>
-              <option value="German">German</option>
-              <option value="Spanish">Spanish</option>
-              <option value="Portuguese">Portuguese</option>
-              <option value="Russian">Russian</option>
-              <option value="Arabic">Arabic</option>
-              <option value="Italian">Italian</option>
+              <option value="Auto">자동 감지</option>
+              <option value="Chinese">중국어</option>
+              <option value="English">영어</option>
+              <option value="Japanese" selected>일본어</option>
+              <option value="Korean">한국어</option>
+              <option value="French">프랑스어</option>
+              <option value="German">독일어</option>
+              <option value="Spanish">스페인어</option>
+              <option value="Portuguese">포르투갈어</option>
+              <option value="Russian">러시아어</option>
+              <option value="Arabic">아랍어</option>
+              <option value="Italian">이탈리아어</option>
             </select>
           </div>
 
-          <button class="swap-btn" title="Swap languages" aria-label="Swap languages" id="swap-btn" type="button">⇄</button>
+          <button class="swap-btn" title="언어 바꾸기" aria-label="언어 바꾸기" id="swap-btn" type="button">⇄</button>
 
           <div class="field-group">
-            <label for="tgt-lang">To</label>
+            <label for="tgt-lang">번역 언어</label>
             <select id="tgt-lang">
-              <option value="Chinese">Chinese (中文)</option>
-              <option value="English">English</option>
-              <option value="Japanese">Japanese (日本語)</option>
-              <option value="Korean" selected>Korean (한국어)</option>
-              <option value="French">French (Francais)</option>
-              <option value="German">German (Deutsch)</option>
-              <option value="Spanish">Spanish (Espanol)</option>
-              <option value="Portuguese">Portuguese (Portugues)</option>
-              <option value="Russian">Russian</option>
-              <option value="Arabic">Arabic</option>
-              <option value="Italian">Italian (Italiano)</option>
+              <option value="Chinese">중국어</option>
+              <option value="English">영어</option>
+              <option value="Japanese">일본어</option>
+              <option value="Korean" selected>한국어</option>
+              <option value="French">프랑스어</option>
+              <option value="German">독일어</option>
+              <option value="Spanish">스페인어</option>
+              <option value="Portuguese">포르투갈어</option>
+              <option value="Russian">러시아어</option>
+              <option value="Arabic">아랍어</option>
+              <option value="Italian">이탈리아어</option>
             </select>
           </div>
         </div>
 
         <div class="text-area-wrap">
-          <textarea id="input-text" placeholder="Enter text to translate..." maxlength="4000"></textarea>
+          <textarea id="input-text" placeholder="번역할 텍스트를 입력하세요..." maxlength="4000"></textarea>
           <span class="char-count" id="char-count">0 / 4000</span>
         </div>
 
         <button class="translate-btn" id="translate-btn" type="button">
-          Translate
+          번역하기
         </button>
 
         <div class="output-wrap">
-          <div class="output-box empty" id="output-box">Translation will appear here...</div>
-          <button class="copy-btn" id="copy-btn" type="button" style="display:none">Copy</button>
+          <div class="output-box empty" id="output-box">번역 결과가 여기에 표시됩니다...</div>
+          <button class="copy-btn" id="copy-btn" type="button" style="display:none">복사</button>
         </div>
 
         <div id="translator-error-box"></div>
@@ -810,10 +810,11 @@
         <path d="M0 11 C80 1 160 21 240 11 S400 1 480 11 640 21 720 11 880 1 960 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
       </svg>
       <p>
-        Model:
+        모델:
         <a href="https://huggingface.co/onnx-community/HY-MT1.5-1.8B-ONNX" target="_blank" rel="noopener">onnx-community/HY-MT1.5-1.8B-ONNX</a>
-        · Built with
+        ·
         <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a>
+        로 제작
       </p>
     </footer>
   </div>
@@ -837,8 +838,8 @@
         localStorage.setItem('translator-theme', nextTheme);
       } catch (_) {}
       $('theme-toggle').setAttribute('aria-pressed', String(isDark));
-      $('theme-toggle').setAttribute('aria-label', isDark ? 'Switch to white mode' : 'Switch to dark mode');
-      $('theme-label').textContent = isDark ? 'Dark' : 'White';
+      $('theme-toggle').setAttribute('aria-label', isDark ? '화이트 모드로 전환' : '다크 모드로 전환');
+      $('theme-label').textContent = isDark ? '다크' : '화이트';
     }
 
     function initTheme() {
@@ -881,7 +882,7 @@
         dot.innerHTML = `
           <span class="file-dot ${info.done ? 'done' : 'loading'}"></span>
           <span class="file-name" title="${name}">${name}</span>
-          <span class="file-pct">${info.done ? 'Done' : pct + '%'}</span>
+          <span class="file-pct">${info.done ? '완료' : pct + '%'}</span>
         `;
         list.appendChild(dot);
       }
@@ -924,7 +925,7 @@
       $('progress-bar').style.width = pct + '%';
       $('progress-pct').textContent = pct + '%';
       $('progress-text').textContent =
-        progress.status === 'done' ? `Loaded: ${key}` : `Downloading: ${key}`;
+        progress.status === 'done' ? `불러옴: ${key}` : `다운로드 중: ${key}`;
 
       renderFileList();
     }
@@ -933,12 +934,12 @@
       const btn = $('load-btn');
       const errBox = $('error-box');
       btn.disabled = true;
-      btn.textContent = 'Loading model...';
+      btn.textContent = '모델을 불러오는 중...';
       errBox.style.display = 'none';
 
       try {
         const device = await detectDevice();
-        $('progress-text').textContent = 'Starting download...';
+        $('progress-text').textContent = '다운로드 시작...';
 
         generator = await pipeline(
           'text-generation',
@@ -952,15 +953,15 @@
 
         $('progress-bar').style.width = '100%';
         $('progress-pct').textContent = '100%';
-        $('progress-text').textContent = 'Model ready';
+        $('progress-text').textContent = '모델 준비 완료';
         $('loader-section').style.display = 'none';
         $('translator-section').style.display = 'block';
       } catch (err) {
         console.error(err);
         errBox.style.display = 'block';
-        errBox.textContent = 'Error: ' + (err.message || String(err));
+        errBox.textContent = '오류: ' + (err.message || String(err));
         btn.disabled = false;
-        btn.textContent = 'Retry';
+        btn.textContent = '다시 시도';
       }
     }
 
@@ -991,8 +992,8 @@
       try {
         await navigator.clipboard.writeText(text);
         const btn = $('copy-btn');
-        btn.textContent = 'Copied';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        btn.textContent = '복사됨';
+        setTimeout(() => { btn.textContent = '복사'; }, 1500);
       } catch (_) {}
     }
 
@@ -1016,7 +1017,7 @@
       outputBox.textContent = '';
 
       translateBtn.disabled = true;
-      translateBtn.innerHTML = '<span class="spinner"></span> Translating...';
+      translateBtn.innerHTML = '<span class="spinner"></span> 번역 중...';
 
       const srcNote = srcLang !== 'Auto' ? ` from ${srcLang}` : '';
       const prompt = `Translate the following segment${srcNote} into ${tgtLang}, without additional explanation.\n\n${inputText}`;
@@ -1042,18 +1043,18 @@
 
         if (!fullText) {
           outputBox.className = 'output-box empty';
-          outputBox.textContent = '(No output - try again)';
+          outputBox.textContent = '(출력이 없습니다 - 다시 시도해 주세요)';
         } else {
           copyBtn.style.display = 'block';
         }
       } catch (err) {
         console.error(err);
         errBox.style.display = 'block';
-        errBox.textContent = 'Error: ' + (err.message || String(err));
+        errBox.textContent = '오류: ' + (err.message || String(err));
       } finally {
         isTranslating = false;
         translateBtn.disabled = false;
-        translateBtn.textContent = 'Translate';
+        translateBtn.textContent = '번역하기';
       }
     }
 
