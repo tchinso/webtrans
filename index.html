@@ -1630,13 +1630,7 @@
 
     function buildTranslationRequest(inputText, srcLang, tgtLang) {
       const srcNote = srcLang !== 'Auto' ? ` from ${srcLang}` : '';
-      const prompt = [
-        `Translate the following text${srcNote} into ${tgtLang}.`,
-        'Preserve paragraph breaks and sentence order.',
-        'Return only the translation, with no explanations.',
-        '',
-        inputText,
-      ].join('\n');
+      const prompt = `Translate the following segment${srcNote} into ${tgtLang}, without additional explanation.\n\n${inputText}`;
 
       return {
         input: [{ role: 'user', content: prompt }],
