@@ -74,17 +74,12 @@
 
     body {
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 88% 62%, rgba(194, 239, 78, 0.18) 0 1px, transparent 1.5px),
-        var(--bg);
-      background-size: 220px 220px, 260px 260px, 300px 300px, auto;
+      background: var(--bg);
       color: var(--text);
       font-family: Rubik, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       letter-spacing: 0;
       line-height: 1.5;
-      padding: 32px 16px 28px;
+      padding: 18px 16px 20px;
       transition: background-color 0.2s ease, color 0.2s ease;
     }
 
@@ -109,12 +104,12 @@
     }
 
     .shell {
-      width: min(100%, 960px);
+      width: min(100%, 1180px);
       margin: 0 auto;
     }
 
     header {
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
 
     .topbar {
@@ -122,7 +117,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 48px;
+      margin-bottom: 0;
     }
 
     .brand {
@@ -166,7 +161,7 @@
     }
 
     .model-link {
-      display: inline-flex;
+      display: none;
       align-items: center;
       justify-content: center;
       padding: 10px 14px;
@@ -211,7 +206,7 @@
     }
 
     .app-head {
-      max-width: 760px;
+      display: none;
     }
 
     h1 {
@@ -259,8 +254,8 @@
 
     .workspace {
       display: grid;
-      gap: 18px;
-      margin-top: 38px;
+      gap: 14px;
+      margin-top: 12px;
     }
 
     .card {
@@ -270,7 +265,7 @@
       background: var(--surface);
       box-shadow: var(--shadow);
       color: var(--text);
-      padding: 24px;
+      padding: 28px;
     }
 
     .loader-header {
@@ -288,10 +283,15 @@
       line-height: 1.25;
     }
 
+    h3 {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
     .section-note {
-      margin-top: 4px;
-      color: var(--text-muted);
-      font-size: 14px;
+      display: none;
     }
 
     .device-pill {
@@ -320,6 +320,32 @@
     .device-pill.cpu {
       border-color: rgba(250, 166, 26, 0.55);
       color: var(--warning);
+    }
+
+    .model-help,
+    .model-status {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .translator-tools {
+      display: grid;
+      gap: 10px;
+      min-width: min(100%, 420px);
+    }
+
+    .active-model {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 5px 9px;
+      background: var(--surface-raised);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
     }
 
     .progress-bar-wrap {
@@ -398,14 +424,14 @@
     }
 
     .load-btn,
-    .translate-btn {
+    .translate-btn,
+    .small-action-btn,
+    .history-action-btn {
       display: inline-flex;
-      width: 100%;
       min-height: 44px;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin-top: 16px;
       border-radius: var(--radius-md);
       background: var(--button-bg);
       color: var(--button-text);
@@ -418,8 +444,39 @@
       transition: background 0.2s ease, transform 0.2s ease;
     }
 
+    .load-btn,
+    .translate-btn {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .load-btn {
+      min-height: 56px;
+      font-size: 16px;
+    }
+
+    .small-action-btn,
+    .history-action-btn {
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--ghost-bg);
+      color: var(--text);
+      font-size: 13px;
+      text-transform: none;
+      white-space: nowrap;
+    }
+
+    .small-action-btn.danger,
+    .history-action-btn.danger {
+      border-color: rgba(237, 66, 69, 0.55);
+      color: var(--error);
+    }
+
     .load-btn:hover:not(:disabled),
     .translate-btn:hover:not(:disabled),
+    .small-action-btn:hover:not(:disabled),
+    .history-action-btn:hover:not(:disabled),
     .theme-toggle:hover,
     .model-link:hover {
       background: var(--button-hover);
@@ -427,12 +484,16 @@
     }
 
     .load-btn:active:not(:disabled),
-    .translate-btn:active:not(:disabled) {
+    .translate-btn:active:not(:disabled),
+    .small-action-btn:active:not(:disabled),
+    .history-action-btn:active:not(:disabled) {
       transform: translateY(1px);
     }
 
     .load-btn:disabled,
-    .translate-btn:disabled {
+    .translate-btn:disabled,
+    .small-action-btn:disabled,
+    .history-action-btn:disabled {
       cursor: not-allowed;
       opacity: 0.55;
     }
@@ -441,7 +502,7 @@
 
     .lang-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr);
       align-items: end;
       gap: 12px;
       margin-bottom: 16px;
@@ -476,11 +537,11 @@
 
     select {
       width: 100%;
-      min-height: 44px;
-      padding: 8px 12px;
+      min-height: 52px;
+      padding: 10px 14px;
       cursor: pointer;
       outline: none;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
     }
 
@@ -492,15 +553,15 @@
 
     .swap-btn {
       display: grid;
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       place-items: center;
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       background: var(--ghost-bg);
       color: var(--text);
       cursor: pointer;
-      font-size: 20px;
+      font-size: 24px;
       transition: background 0.2s ease, border-color 0.2s ease;
     }
 
@@ -509,36 +570,78 @@
       background: var(--surface-raised);
     }
 
-    .text-area-wrap {
-      position: relative;
+    .chunk-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .chunk-header,
+    .history-header,
+    .chunk-card-header,
+    .history-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    #chunk-summary,
+    #history-count,
+    .chunk-count,
+    .history-meta {
+      display: inline-flex;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .chunk-list,
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .chunk-card,
+    .history-entry {
+      display: grid;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-raised);
+      padding: 12px;
+    }
+
+    .chunk-title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
     }
 
     textarea {
       width: 100%;
-      min-height: 156px;
-      padding: 14px 14px 34px;
+      min-height: clamp(260px, 38vh, 480px);
+      padding: 18px 18px 44px;
       resize: vertical;
       outline: none;
-      font-size: 16px;
-      line-height: 1.5;
+      font-size: 20px;
+      line-height: 1.7;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chunk-card textarea {
+      min-height: clamp(220px, 30vh, 360px);
+      padding-bottom: 18px;
     }
 
     textarea::placeholder {
       color: var(--text-muted);
     }
 
-    .char-count {
-      position: absolute;
-      right: 12px;
-      bottom: 10px;
-      color: var(--text-muted);
-      font-size: 14px;
-      pointer-events: none;
-    }
-
     .translate-btn {
-      margin: 14px 0;
+      min-height: 68px;
+      margin: 18px 0;
+      font-size: 20px;
     }
 
     .spinner {
@@ -559,11 +662,11 @@
     }
 
     .output-box {
-      min-height: 156px;
-      padding: 14px;
+      min-height: 220px;
+      padding: 18px;
       color: var(--text);
-      font-size: 16px;
-      line-height: 1.5;
+      font-size: 19px;
+      line-height: 1.65;
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -571,6 +674,64 @@
     .output-box.empty {
       color: var(--text-muted);
       font-style: italic;
+    }
+
+    .history-panel {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-list {
+      max-height: 440px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .history-empty {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .history-text-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .history-text {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .history-text strong {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .history-text p {
+      max-height: 150px;
+      overflow: auto;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .history-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
     }
 
     .copy-btn {
@@ -608,10 +769,7 @@
     }
 
     footer {
-      margin-top: 36px;
-      color: var(--text-muted);
-      font-size: 14px;
-      text-align: center;
+      display: none;
     }
 
     .squiggle {
@@ -627,22 +785,21 @@
 
     @media (max-width: 700px) {
       body {
-        padding-top: 20px;
+        padding: 14px 12px 18px;
       }
 
       .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-        margin-bottom: 34px;
+        align-items: center;
+        flex-direction: row;
+        margin-bottom: 0;
       }
 
       .top-actions {
-        width: 100%;
+        width: auto;
       }
 
-      .model-link,
       .theme-toggle {
-        flex: 1;
+        flex: 0 0 auto;
       }
 
       .app-head {
@@ -662,23 +819,66 @@
         flex-direction: column;
       }
 
+      .translator-tools {
+        width: 100%;
+      }
+
       .lang-row {
         grid-template-columns: 1fr;
+        gap: 10px;
       }
 
       .swap-btn {
         justify-self: start;
       }
+
+      .chunk-header,
+      .history-header,
+      .chunk-card-header,
+      .history-entry-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .small-action-btn,
+      .history-action-btn {
+        width: 100%;
+      }
+
+      textarea {
+        min-height: 240px;
+        font-size: 18px;
+      }
+
+      .chunk-card textarea {
+        min-height: 220px;
+      }
+
+      .translate-btn {
+        min-height: 64px;
+      }
+
+      .output-box {
+        min-height: 190px;
+        font-size: 18px;
+      }
+
+      .history-text-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-actions {
+        width: 100%;
+      }
     }
 
     @media (max-width: 420px) {
       .top-actions {
-        flex-direction: column;
+        flex-direction: row;
       }
 
-      .model-link,
       .theme-toggle {
-        width: 100%;
+        width: auto;
       }
     }
   </style>
@@ -703,7 +903,7 @@
       <div class="app-head">
         <h1><span class="lime-chip">로컬</span> 번역기</h1>
         <p class="subtitle">
-          <strong>HY-MT1.5-1.8B-ONNX</strong> 기반으로 브라우저 안에서만 실행됩니다. 기본 번역 방향은 일본어에서 한국어입니다.
+          <strong>HY-MT1.5 1.8B</strong> 모델을 브라우저 안에서만 실행합니다.
         </p>
         <span class="privacy-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -723,6 +923,8 @@
           </div>
           <span class="device-pill" id="device-pill">감지 중...</span>
         </div>
+
+        <p class="model-help" id="model-help">HY-MT1.5 1.8B ONNX 모델을 사용합니다. 자동 감지와 11개 언어 선택을 사용할 수 있습니다.</p>
 
         <div class="progress-bar-wrap" aria-hidden="true">
           <div class="progress-bar" id="progress-bar"></div>
@@ -746,50 +948,34 @@
             <h2 id="translator-title">번역</h2>
             <p class="section-note">기본 방향: 일본어에서 한국어로 번역합니다.</p>
           </div>
+          <div class="translator-tools">
+            <span class="active-model" id="active-model-label">모델 준비 중</span>
+          </div>
         </div>
 
         <div class="lang-row">
           <div class="field-group">
             <label for="src-lang">원문 언어</label>
-            <select id="src-lang">
-              <option value="Auto">자동 감지</option>
-              <option value="Chinese">중국어</option>
-              <option value="English">영어</option>
-              <option value="Japanese" selected>일본어</option>
-              <option value="Korean">한국어</option>
-              <option value="French">프랑스어</option>
-              <option value="German">독일어</option>
-              <option value="Spanish">스페인어</option>
-              <option value="Portuguese">포르투갈어</option>
-              <option value="Russian">러시아어</option>
-              <option value="Arabic">아랍어</option>
-              <option value="Italian">이탈리아어</option>
-            </select>
+            <select id="src-lang"></select>
           </div>
 
           <button class="swap-btn" title="언어 바꾸기" aria-label="언어 바꾸기" id="swap-btn" type="button">⇄</button>
 
           <div class="field-group">
             <label for="tgt-lang">번역 언어</label>
-            <select id="tgt-lang">
-              <option value="Chinese">중국어</option>
-              <option value="English">영어</option>
-              <option value="Japanese">일본어</option>
-              <option value="Korean" selected>한국어</option>
-              <option value="French">프랑스어</option>
-              <option value="German">독일어</option>
-              <option value="Spanish">스페인어</option>
-              <option value="Portuguese">포르투갈어</option>
-              <option value="Russian">러시아어</option>
-              <option value="Arabic">아랍어</option>
-              <option value="Italian">이탈리아어</option>
-            </select>
+            <select id="tgt-lang"></select>
           </div>
         </div>
 
-        <div class="text-area-wrap">
-          <textarea id="input-text" placeholder="번역할 텍스트를 입력하세요..." maxlength="4000"></textarea>
-          <span class="char-count" id="char-count">0 / 4000</span>
+        <div class="chunk-panel">
+          <div class="chunk-header">
+            <div>
+              <h3>원문 칸</h3>
+              <span id="chunk-summary">1칸 · 0자</span>
+            </div>
+            <button class="small-action-btn" id="add-chunk-btn" type="button">칸 추가</button>
+          </div>
+          <div class="chunk-list" id="input-chunks"></div>
         </div>
 
         <button class="translate-btn" id="translate-btn" type="button">
@@ -802,6 +988,17 @@
         </div>
 
         <div id="translator-error-box"></div>
+
+        <section class="history-panel" aria-labelledby="history-title">
+          <div class="history-header">
+            <div>
+              <h3 id="history-title">최근 번역</h3>
+              <span id="history-count">0 / 200칸</span>
+            </div>
+            <button class="small-action-btn danger" id="clear-history-btn" type="button">전체 삭제</button>
+          </div>
+          <div class="history-list" id="history-list"></div>
+        </section>
       </section>
     </main>
 
@@ -811,7 +1008,7 @@
       </svg>
       <p>
         모델:
-        <a href="https://huggingface.co/onnx-community/HY-MT1.5-1.8B-ONNX" target="_blank" rel="noopener">onnx-community/HY-MT1.5-1.8B-ONNX</a>
+        <a id="footer-model-link" href="https://huggingface.co/onnx-community/HY-MT1.5-1.8B-ONNX" target="_blank" rel="noopener">onnx-community/HY-MT1.5-1.8B-ONNX</a>
         ·
         <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a>
         로 제작
@@ -823,12 +1020,166 @@
     import { pipeline, TextStreamer } from
       'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/transformers.min.js';
 
+    const MODEL_CONFIG = {
+      id: 'onnx-community/HY-MT1.5-1.8B-ONNX',
+      label: 'HY-MT1.5 1.8B ONNX',
+      shortLabel: 'HY-MT1.5 1.8B',
+      href: 'https://huggingface.co/onnx-community/HY-MT1.5-1.8B-ONNX',
+      description: 'HY-MT1.5 1.8B ONNX 모델을 사용합니다. 자동 감지와 11개 언어 선택을 사용할 수 있습니다.',
+      dtype: 'q4',
+      sizeLabel: '~1 GB',
+      maxNewTokens: 2048,
+      languages: [
+        'Chinese',
+        'English',
+        'Japanese',
+        'Korean',
+        'French',
+        'German',
+        'Spanish',
+        'Portuguese',
+        'Russian',
+        'Arabic',
+        'Italian',
+      ],
+    };
+
+    const CHUNK_TARGET_CHARS = 800;
+    const CHUNK_LOOKAHEAD_CHARS = 800;
+    const CHUNK_HARD_LIMIT_CHARS = CHUNK_TARGET_CHARS + CHUNK_LOOKAHEAD_CHARS;
+    const HISTORY_LIMIT = 200;
+    const HISTORY_STORAGE_KEY = 'hy-translator-history-v1';
+    const SENTENCE_BREAK_CHARS = new Set([
+      '。', '．', '.', '!', '?', '！', '？', '…', '؛', ';', '；',
+    ]);
+    const PHRASE_BREAK_CHARS = new Set([
+      '、', '，', ',', ':', '：',
+    ]);
+    const CLOSING_BREAK_CHARS = new Set([
+      '"', "'", '”', '’', '」', '』', '）', ')', ']', '】', '｝', '}', '》', '〉',
+    ]);
+
+    const LANGUAGE_LABELS = {
+      Auto: '자동 감지',
+      Chinese: '중국어',
+      English: '영어',
+      Japanese: '일본어',
+      Korean: '한국어',
+      French: '프랑스어',
+      German: '독일어',
+      Spanish: '스페인어',
+      Portuguese: '포르투갈어',
+      Russian: '러시아어',
+      Arabic: '아랍어',
+      Italian: '이탈리아어',
+    };
+
     let generator = null;
+    let isLoading = false;
     let isTranslating = false;
-    const MODEL_ID = 'onnx-community/HY-MT1.5-1.8B-ONNX';
+    let loadRunId = 0;
+    let translationRunId = 0;
+    let inputChunks = [];
+    let historyEntries = [];
     const fileProgress = {};
 
     const $ = (id) => document.getElementById(id);
+
+    function createId(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function updateModelLabels() {
+      const labelPrefix = generator ? '사용 중' : '선택';
+      $('active-model-label').textContent = `${labelPrefix}: ${MODEL_CONFIG.shortLabel}`;
+      $('footer-model-link').href = MODEL_CONFIG.href;
+      $('footer-model-link').textContent = MODEL_CONFIG.id;
+      $('model-help').textContent = MODEL_CONFIG.description;
+      $('load-btn').textContent = `${MODEL_CONFIG.shortLabel} 다운로드 및 불러오기 (${MODEL_CONFIG.sizeLabel})`;
+      document.title = `로컬 번역기 - ${MODEL_CONFIG.shortLabel}`;
+    }
+
+    function fillLanguageSelect(select, values, selectedValue) {
+      select.innerHTML = '';
+
+      for (const value of values) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = LANGUAGE_LABELS[value] || value;
+        select.appendChild(option);
+      }
+
+      select.value = values.includes(selectedValue) ? selectedValue : values[0];
+    }
+
+    function renderLanguageOptions(useDefaults = false) {
+      const srcValues = ['Auto', ...MODEL_CONFIG.languages];
+      const tgtValues = [...MODEL_CONFIG.languages];
+      const srcDefault = 'Japanese';
+      const tgtDefault = 'Korean';
+      const previousSrc = useDefaults ? srcDefault : $('src-lang').value;
+      const previousTgt = useDefaults ? tgtDefault : $('tgt-lang').value;
+
+      fillLanguageSelect(
+        $('src-lang'),
+        srcValues,
+        srcValues.includes(previousSrc) ? previousSrc : srcDefault
+      );
+      fillLanguageSelect(
+        $('tgt-lang'),
+        tgtValues,
+        tgtValues.includes(previousTgt) ? previousTgt : tgtDefault
+      );
+    }
+
+    function resetProgress() {
+      for (const key of Object.keys(fileProgress)) {
+        delete fileProgress[key];
+      }
+
+      $('progress-bar').style.width = '0%';
+      $('progress-pct').textContent = '0%';
+      $('progress-text').textContent = '불러올 준비 완료';
+      $('file-list').innerHTML = '';
+    }
+
+    function resetTranslatorOutput(message = '번역 결과가 여기에 표시됩니다...') {
+      $('output-box').className = 'output-box empty';
+      $('output-box').textContent = message;
+      $('copy-btn').style.display = 'none';
+      $('translator-error-box').style.display = 'none';
+    }
+
+    function setTranslateButtonIdle() {
+      const chunkCount = getFilledChunks().length;
+      $('translate-btn').disabled = isLoading || isTranslating || !generator || chunkCount === 0;
+      $('translate-btn').textContent = chunkCount > 1 ? `${chunkCount}칸 번역하기` : '번역하기';
+    }
+
+    async function disposeGenerator() {
+      if (!generator) return;
+
+      const oldGenerator = generator;
+      generator = null;
+
+      if (typeof oldGenerator.dispose === 'function') {
+        try {
+          await oldGenerator.dispose();
+        } catch (err) {
+          console.warn('기존 모델 정리 중 오류:', err);
+        }
+      }
+    }
+
+    function initApp() {
+      inputChunks = [createChunk('')];
+      historyEntries = loadHistoryEntries();
+      updateModelLabels();
+      renderLanguageOptions(true);
+      renderInputChunks();
+      renderHistory();
+      setTranslateButtonIdle();
+    }
 
     function setTheme(theme) {
       const nextTheme = theme === 'light' ? 'light' : 'dark';
@@ -930,38 +1281,88 @@
       renderFileList();
     }
 
+    function createPipeline(device, runId) {
+      return pipeline(
+        'text-generation',
+        MODEL_CONFIG.id,
+        {
+          dtype: MODEL_CONFIG.dtype,
+          device,
+          progress_callback: (progress) => {
+            if (runId === loadRunId) onProgress(progress);
+          },
+        }
+      );
+    }
+
     async function loadModel() {
+      if (isLoading) return;
+
       const btn = $('load-btn');
       const errBox = $('error-box');
+      const translatorErrBox = $('translator-error-box');
+      const runId = ++loadRunId;
+
+      translationRunId += 1;
+      isLoading = true;
+      isTranslating = false;
+      updateModelLabels();
+      renderLanguageOptions(true);
+      resetTranslatorOutput(`${MODEL_CONFIG.shortLabel} 모델을 불러오는 중입니다...`);
+      resetProgress();
+
       btn.disabled = true;
-      btn.textContent = '모델을 불러오는 중...';
+      btn.textContent = `${MODEL_CONFIG.shortLabel} 불러오는 중...`;
       errBox.style.display = 'none';
+      translatorErrBox.style.display = 'none';
+      $('loader-section').style.display = 'block';
+      $('translator-section').style.display = 'none';
+      setTranslateButtonIdle();
 
       try {
-        const device = await detectDevice();
-        $('progress-text').textContent = '다운로드 시작...';
+        await disposeGenerator();
 
-        generator = await pipeline(
-          'text-generation',
-          MODEL_ID,
-          {
-            dtype: 'q4',
-            device,
-            progress_callback: onProgress,
-          }
-        );
+        const device = await detectDevice();
+        $('progress-text').textContent = `${MODEL_CONFIG.shortLabel} 다운로드 시작...`;
+
+        try {
+          generator = await createPipeline(device, runId);
+        } catch (err) {
+          if (device !== 'webgpu') throw err;
+
+          console.warn('WebGPU 로드 실패, wasm으로 재시도합니다:', err);
+          $('device-pill').textContent = 'CPU (wasm)';
+          $('device-pill').classList.remove('webgpu');
+          $('device-pill').classList.add('cpu');
+          $('progress-text').textContent = 'WebGPU 로드 실패, CPU(wasm)로 다시 시도합니다...';
+          generator = await createPipeline('wasm', runId);
+        }
+
+        if (runId !== loadRunId) return;
 
         $('progress-bar').style.width = '100%';
         $('progress-pct').textContent = '100%';
         $('progress-text').textContent = '모델 준비 완료';
+        updateModelLabels();
+        renderLanguageOptions(true);
         $('loader-section').style.display = 'none';
         $('translator-section').style.display = 'block';
+        btn.textContent = `${MODEL_CONFIG.shortLabel} 준비 완료`;
+        resetTranslatorOutput();
       } catch (err) {
+        if (runId !== loadRunId) return;
+
         console.error(err);
         errBox.style.display = 'block';
         errBox.textContent = '오류: ' + (err.message || String(err));
         btn.disabled = false;
         btn.textContent = '다시 시도';
+      } finally {
+        if (runId === loadRunId) {
+          isLoading = false;
+          setTranslateButtonIdle();
+          updateModelLabels();
+        }
       }
     }
 
@@ -974,17 +1375,241 @@
       src.value = tgt.value;
       tgt.value = tmp;
 
-      const inputText = $('input-text').value;
+      const inputText = getCombinedInputText();
       const outputBox = $('output-box');
       if (!outputBox.classList.contains('empty') && outputBox.textContent) {
-        $('input-text').value = outputBox.textContent;
+        inputChunks = splitTextIntoChunks(outputBox.textContent).map(createChunk);
+        renderInputChunks();
         outputBox.textContent = inputText;
-        updateCharCount();
       }
     }
 
-    function updateCharCount() {
-      $('char-count').textContent = `${$('input-text').value.length} / 4000`;
+    function createChunk(text) {
+      return {
+        id: createId('chunk'),
+        text,
+      };
+    }
+
+    function getCombinedInputText() {
+      return inputChunks.map((chunk) => chunk.text).filter(Boolean).join('\n\n');
+    }
+
+    function getFilledChunks() {
+      return inputChunks
+        .map((chunk, index) => ({ ...chunk, index }))
+        .filter((chunk) => chunk.text.trim().length > 0);
+    }
+
+    function updateChunkSummary() {
+      const totalChars = inputChunks.reduce((sum, chunk) => sum + chunk.text.length, 0);
+      $('chunk-summary').textContent = `${inputChunks.length}칸 · ${totalChars}자`;
+    }
+
+    function updateChunkCount(card, text) {
+      const count = card.querySelector('.chunk-count');
+      count.textContent = `${text.length} / ${CHUNK_TARGET_CHARS} 기준`;
+      count.style.color = text.length > CHUNK_TARGET_CHARS ? 'var(--warning)' : '';
+    }
+
+    function renderInputChunks(focusChunkId = null) {
+      const list = $('input-chunks');
+      list.innerHTML = '';
+
+      inputChunks.forEach((chunk, index) => {
+        const card = document.createElement('section');
+        card.className = 'chunk-card';
+
+        const header = document.createElement('div');
+        header.className = 'chunk-card-header';
+
+        const info = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'chunk-title';
+        title.textContent = `칸 ${index + 1}`;
+        const count = document.createElement('span');
+        count.className = 'chunk-count';
+        count.textContent = `${chunk.text.length} / ${CHUNK_TARGET_CHARS} 기준`;
+        info.append(title, count);
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'small-action-btn danger';
+        removeButton.type = 'button';
+        removeButton.textContent = inputChunks.length === 1 ? '비우기' : '삭제';
+        removeButton.addEventListener('click', () => removeInputChunk(chunk.id));
+
+        header.append(info, removeButton);
+
+        const textarea = document.createElement('textarea');
+        textarea.value = chunk.text;
+        textarea.placeholder = index === 0
+          ? '번역할 텍스트를 입력하거나 붙여넣으세요. 800자를 넘으면 문장 경계에 맞춰 자동으로 칸이 나뉩니다.'
+          : '이 칸에 이어지는 원문을 입력하세요.';
+        textarea.spellcheck = false;
+        textarea.addEventListener('input', () => handleChunkInput(chunk.id, textarea));
+        textarea.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            doTranslate();
+          }
+        });
+
+        card.append(header, textarea);
+        list.appendChild(card);
+
+        if (focusChunkId === chunk.id) {
+          requestAnimationFrame(() => textarea.focus());
+        }
+      });
+
+      updateChunkSummary();
+      setTranslateButtonIdle();
+    }
+
+    function handleChunkInput(chunkId, textarea) {
+      const index = inputChunks.findIndex((chunk) => chunk.id === chunkId);
+      if (index === -1) return;
+
+      const pieces = splitTextIntoChunks(textarea.value);
+      if (pieces.length > 1) {
+        const newChunks = pieces.map(createChunk);
+        inputChunks.splice(index, 1, ...newChunks);
+        renderInputChunks(newChunks.at(-1)?.id);
+        return;
+      }
+
+      inputChunks[index].text = textarea.value;
+      updateChunkCount(textarea.closest('.chunk-card'), textarea.value);
+      updateChunkSummary();
+      setTranslateButtonIdle();
+    }
+
+    function removeInputChunk(chunkId) {
+      const index = inputChunks.findIndex((chunk) => chunk.id === chunkId);
+      if (index === -1) return;
+
+      if (inputChunks.length === 1) {
+        inputChunks[0].text = '';
+      } else {
+        inputChunks.splice(index, 1);
+      }
+
+      renderInputChunks(inputChunks[Math.max(0, index - 1)]?.id);
+    }
+
+    function normalizeInputChunks() {
+      const pieces = inputChunks.flatMap((chunk) => splitTextIntoChunks(chunk.text));
+      inputChunks = pieces.length > 0 ? pieces.map(createChunk) : [createChunk('')];
+      renderInputChunks();
+      return getFilledChunks();
+    }
+
+    function isNewline(text, index) {
+      return text[index] === '\n' || text[index] === '\r';
+    }
+
+    function expandBreakPosition(text, position, upperLimit) {
+      let next = position;
+      while (next < upperLimit && CLOSING_BREAK_CHARS.has(text[next])) {
+        next += 1;
+      }
+      while (next < upperLimit && /[ \t]/.test(text[next])) {
+        next += 1;
+      }
+      return next;
+    }
+
+    function collectBreakCandidate(text, index, searchLimit) {
+      const char = text[index];
+
+      if (isNewline(text, index)) {
+        let next = index + 1;
+        while (next < searchLimit && isNewline(text, next)) {
+          next += 1;
+        }
+
+        return { position: next, type: 'clean' };
+      }
+
+      if (SENTENCE_BREAK_CHARS.has(char)) {
+        return {
+          position: expandBreakPosition(text, index + 1, searchLimit),
+          type: 'clean',
+        };
+      }
+
+      if (PHRASE_BREAK_CHARS.has(char)) {
+        return {
+          position: expandBreakPosition(text, index + 1, searchLimit),
+          type: 'phrase',
+        };
+      }
+
+      if (/\s/.test(char)) {
+        return { position: index + 1, type: 'space' };
+      }
+
+      return null;
+    }
+
+    function chooseBoundary(before, after, closeRatio) {
+      const closeEnough = Math.floor(CHUNK_TARGET_CHARS * closeRatio);
+
+      if (before >= closeEnough) return before;
+      if (after > 0) return after;
+      if (before > 0) return before;
+      return 0;
+    }
+
+    function findStrategicBreak(text) {
+      const searchLimit = Math.min(CHUNK_HARD_LIMIT_CHARS, text.length);
+      let beforeClean = -1;
+      let afterClean = -1;
+      let beforePhrase = -1;
+      let afterPhrase = -1;
+      let beforeSpace = -1;
+      let afterSpace = -1;
+
+      for (let index = 0; index < searchLimit; index += 1) {
+        const candidate = collectBreakCandidate(text, index, searchLimit);
+        if (!candidate) continue;
+
+        if (candidate.position <= CHUNK_TARGET_CHARS) {
+          if (candidate.type === 'clean') beforeClean = candidate.position;
+          if (candidate.type === 'phrase') beforePhrase = candidate.position;
+          if (candidate.type === 'space') beforeSpace = candidate.position;
+        } else {
+          if (candidate.type === 'clean' && afterClean === -1) afterClean = candidate.position;
+          if (candidate.type === 'phrase' && afterPhrase === -1) afterPhrase = candidate.position;
+          if (candidate.type === 'space' && afterSpace === -1) afterSpace = candidate.position;
+        }
+
+        if (candidate.type === 'clean') {
+          index = Math.max(index, candidate.position - 1);
+        }
+      }
+
+      return chooseBoundary(beforeClean, afterClean, 0.7)
+        || chooseBoundary(beforePhrase, afterPhrase, 0.75)
+        || chooseBoundary(beforeSpace, afterSpace, 0.85)
+        || searchLimit;
+    }
+
+    function splitTextIntoChunks(text) {
+      const chunks = [];
+      let remaining = text.trim();
+
+      while (remaining.length > CHUNK_TARGET_CHARS) {
+        const breakIndex = findStrategicBreak(remaining);
+        const chunk = remaining.slice(0, breakIndex).trim();
+        if (chunk) chunks.push(chunk);
+        remaining = remaining.slice(breakIndex).trimStart();
+      }
+
+      if (remaining) {
+        chunks.push(remaining);
+      }
+
+      return chunks;
     }
 
     async function copyOutput() {
@@ -997,11 +1622,87 @@
       } catch (_) {}
     }
 
-    async function doTranslate() {
-      if (isTranslating || !generator) return;
+    function cleanTranslationOutput(text) {
+      return text
+        .replace(/^assistant\s*[:：]\s*/i, '')
+        .trimStart();
+    }
 
-      const inputText = $('input-text').value.trim();
-      if (!inputText) return;
+    function buildTranslationRequest(inputText, srcLang, tgtLang) {
+      const srcNote = srcLang !== 'Auto' ? ` from ${srcLang}` : '';
+      const prompt = [
+        `Translate the following text${srcNote} into ${tgtLang}.`,
+        'Preserve paragraph breaks and sentence order.',
+        'Return only the translation, with no explanations.',
+        '',
+        inputText,
+      ].join('\n');
+
+      return {
+        input: [{ role: 'user', content: prompt }],
+        clean: cleanTranslationOutput,
+      };
+    }
+
+    function extractGeneratedText(result) {
+      const item = Array.isArray(result) ? result[0] : result;
+      const generated = item?.generated_text ?? item?.text ?? '';
+
+      if (Array.isArray(generated)) {
+        return generated.at(-1)?.content || '';
+      }
+
+      return typeof generated === 'string' ? generated : '';
+    }
+
+    function renderOutputSegments(segments, fallbackMessage = '') {
+      const visibleText = segments.filter(Boolean).join('\n\n').trim();
+
+      if (!visibleText) {
+        $('output-box').className = 'output-box empty';
+        $('output-box').textContent = fallbackMessage;
+        return;
+      }
+
+      $('output-box').className = 'output-box';
+      $('output-box').textContent = visibleText;
+    }
+
+    async function translateChunk(chunk, chunkIndex, chunkTotal, segments, runId) {
+      const request = buildTranslationRequest(chunk.text.trim(), $('src-lang').value, $('tgt-lang').value);
+      let fullText = '';
+      const streamer = new TextStreamer(generator.tokenizer, {
+        skip_prompt: true,
+        skip_special_tokens: true,
+        callback_function: (token) => {
+          if (runId !== translationRunId) return;
+
+          fullText += token;
+          segments[chunkIndex] = request.clean(fullText);
+          renderOutputSegments(segments, `${chunkIndex + 1}/${chunkTotal} 번역 중...`);
+        },
+      });
+
+      const result = await generator(request.input, {
+        max_new_tokens: MODEL_CONFIG.maxNewTokens,
+        do_sample: false,
+        streamer,
+      });
+
+      if (runId !== translationRunId) return '';
+
+      if (!fullText) {
+        fullText = extractGeneratedText(result);
+      }
+
+      return request.clean(fullText).trim();
+    }
+
+    async function doTranslate() {
+      if (isTranslating || !generator || isLoading) return;
+
+      const chunksToTranslate = normalizeInputChunks();
+      if (chunksToTranslate.length === 0) return;
 
       const tgtLang = $('tgt-lang').value;
       const srcLang = $('src-lang').value;
@@ -1009,6 +1710,9 @@
       const translateBtn = $('translate-btn');
       const copyBtn = $('copy-btn');
       const errBox = $('translator-error-box');
+      const runId = ++translationRunId;
+      const outputSegments = new Array(chunksToTranslate.length).fill('');
+      const historyToAdd = [];
 
       isTranslating = true;
       errBox.style.display = 'none';
@@ -1019,58 +1723,229 @@
       translateBtn.disabled = true;
       translateBtn.innerHTML = '<span class="spinner"></span> 번역 중...';
 
-      const srcNote = srcLang !== 'Auto' ? ` from ${srcLang}` : '';
-      const prompt = `Translate the following segment${srcNote} into ${tgtLang}, without additional explanation.\n\n${inputText}`;
-      const messages = [{ role: 'user', content: prompt }];
-
       try {
-        let fullText = '';
-        const streamer = new TextStreamer(generator.tokenizer, {
-          skip_prompt: true,
-          skip_special_tokens: true,
-          callback_function: (token) => {
-            fullText += token;
-            outputBox.className = 'output-box';
-            outputBox.textContent = fullText;
-          },
-        });
+        for (const [index, chunk] of chunksToTranslate.entries()) {
+          if (runId !== translationRunId) return;
 
-        await generator(messages, {
-          max_new_tokens: 512,
-          do_sample: false,
-          streamer,
-        });
+          translateBtn.innerHTML = `<span class="spinner"></span> ${index + 1}/${chunksToTranslate.length} 번역 중...`;
+          const translatedText = await translateChunk(chunk, index, chunksToTranslate.length, outputSegments, runId);
+          outputSegments[index] = translatedText;
+          renderOutputSegments(outputSegments, `${index + 1}/${chunksToTranslate.length} 번역 완료`);
+          historyToAdd.push({
+            source: chunk.text.trim(),
+            target: translatedText,
+            srcLang,
+            tgtLang,
+          });
+        }
 
-        if (!fullText) {
+        if (runId !== translationRunId) return;
+
+        const finalText = outputSegments.filter(Boolean).join('\n\n').trim();
+        if (!finalText) {
           outputBox.className = 'output-box empty';
           outputBox.textContent = '(출력이 없습니다 - 다시 시도해 주세요)';
         } else {
+          outputBox.className = 'output-box';
+          outputBox.textContent = finalText;
           copyBtn.style.display = 'block';
+          addHistoryEntries(historyToAdd.filter((entry) => entry.target));
         }
       } catch (err) {
+        if (runId !== translationRunId) return;
+
         console.error(err);
         errBox.style.display = 'block';
         errBox.textContent = '오류: ' + (err.message || String(err));
       } finally {
-        isTranslating = false;
-        translateBtn.disabled = false;
-        translateBtn.textContent = '번역하기';
+        if (runId === translationRunId) {
+          isTranslating = false;
+          translateBtn.disabled = false;
+          setTranslateButtonIdle();
+        }
       }
     }
 
-    $('input-text').addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        doTranslate();
+    function loadHistoryEntries() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+          .filter((entry) => entry && typeof entry.source === 'string' && typeof entry.target === 'string')
+          .slice(0, HISTORY_LIMIT);
+      } catch (_) {
+        return [];
       }
-    });
+    }
+
+    function saveHistoryEntries() {
+      try {
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyEntries.slice(0, HISTORY_LIMIT)));
+      } catch (_) {}
+    }
+
+    function formatHistoryDate(timestamp) {
+      try {
+        return new Intl.DateTimeFormat('ko-KR', {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(timestamp));
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function addHistoryEntries(entries) {
+      const createdAt = Date.now();
+      const normalizedEntries = entries.map((entry, index) => ({
+        id: createId('history'),
+        source: entry.source,
+        target: entry.target,
+        srcLang: entry.srcLang,
+        tgtLang: entry.tgtLang,
+        createdAt: createdAt + index,
+      }));
+
+      historyEntries = [...normalizedEntries, ...historyEntries].slice(0, HISTORY_LIMIT);
+      saveHistoryEntries();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = $('history-list');
+      list.innerHTML = '';
+      $('history-count').textContent = `${historyEntries.length} / ${HISTORY_LIMIT}칸`;
+      $('clear-history-btn').disabled = historyEntries.length === 0;
+
+      if (historyEntries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'history-empty';
+        empty.textContent = '아직 저장된 번역이 없습니다.';
+        list.appendChild(empty);
+        return;
+      }
+
+      for (const [index, entry] of historyEntries.entries()) {
+        const item = document.createElement('article');
+        item.className = 'history-entry';
+
+        const header = document.createElement('div');
+        header.className = 'history-entry-header';
+
+        const info = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'chunk-title';
+        title.textContent = `기록 ${index + 1}`;
+        const meta = document.createElement('span');
+        meta.className = 'history-meta';
+        meta.textContent = `${LANGUAGE_LABELS[entry.srcLang] || entry.srcLang} → ${LANGUAGE_LABELS[entry.tgtLang] || entry.tgtLang} · ${formatHistoryDate(entry.createdAt)}`;
+        info.append(title, meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const restoreButton = document.createElement('button');
+        restoreButton.className = 'history-action-btn';
+        restoreButton.type = 'button';
+        restoreButton.dataset.historyAction = 'restore';
+        restoreButton.dataset.historyId = entry.id;
+        restoreButton.textContent = '원문 넣기';
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'history-action-btn';
+        copyButton.type = 'button';
+        copyButton.dataset.historyAction = 'copy';
+        copyButton.dataset.historyId = entry.id;
+        copyButton.textContent = '번역 복사';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'history-action-btn danger';
+        deleteButton.type = 'button';
+        deleteButton.dataset.historyAction = 'delete';
+        deleteButton.dataset.historyId = entry.id;
+        deleteButton.textContent = '삭제';
+
+        actions.append(restoreButton, copyButton, deleteButton);
+        header.append(info, actions);
+
+        const textGrid = document.createElement('div');
+        textGrid.className = 'history-text-grid';
+
+        const sourceWrap = document.createElement('div');
+        sourceWrap.className = 'history-text';
+        const sourceLabel = document.createElement('strong');
+        sourceLabel.textContent = '원문';
+        const sourceText = document.createElement('p');
+        sourceText.textContent = entry.source;
+        sourceWrap.append(sourceLabel, sourceText);
+
+        const targetWrap = document.createElement('div');
+        targetWrap.className = 'history-text';
+        const targetLabel = document.createElement('strong');
+        targetLabel.textContent = '번역';
+        const targetText = document.createElement('p');
+        targetText.textContent = entry.target;
+        targetWrap.append(targetLabel, targetText);
+
+        textGrid.append(sourceWrap, targetWrap);
+        item.append(header, textGrid);
+        list.appendChild(item);
+      }
+    }
+
+    function restoreHistoryEntry(entry) {
+      inputChunks = splitTextIntoChunks(entry.source).map(createChunk);
+      renderInputChunks(inputChunks[0]?.id);
+      resetTranslatorOutput();
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {}
+    }
+
+    function handleHistoryAction(event) {
+      const button = event.target.closest('[data-history-action]');
+      if (!button) return;
+
+      const entry = historyEntries.find((item) => item.id === button.dataset.historyId);
+      if (!entry) return;
+
+      if (button.dataset.historyAction === 'restore') {
+        restoreHistoryEntry(entry);
+      } else if (button.dataset.historyAction === 'copy') {
+        copyText(entry.target);
+        button.textContent = '복사됨';
+        setTimeout(() => { button.textContent = '번역 복사'; }, 1500);
+      } else if (button.dataset.historyAction === 'delete') {
+        historyEntries = historyEntries.filter((item) => item.id !== entry.id);
+        saveHistoryEntries();
+        renderHistory();
+      }
+    }
 
     $('load-btn').addEventListener('click', loadModel);
     $('swap-btn').addEventListener('click', swapLangs);
     $('translate-btn').addEventListener('click', doTranslate);
     $('copy-btn').addEventListener('click', copyOutput);
-    $('input-text').addEventListener('input', updateCharCount);
+    $('add-chunk-btn').addEventListener('click', () => {
+      const chunk = createChunk('');
+      inputChunks.push(chunk);
+      renderInputChunks(chunk.id);
+    });
+    $('clear-history-btn').addEventListener('click', () => {
+      historyEntries = [];
+      saveHistoryEntries();
+      renderHistory();
+    });
+    $('history-list').addEventListener('click', handleHistoryAction);
 
     initTheme();
+    initApp();
   </script>
 </body>
 </html>
