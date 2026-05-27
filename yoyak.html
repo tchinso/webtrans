@@ -1012,6 +1012,7 @@
     const CHUNK_TARGET_CHARS = 800;
     const CHUNK_MAX_CHARS = 1000;
     const CHUNK_RANGE_LABEL = `${CHUNK_MIN_CHARS}~${CHUNK_MAX_CHARS}자`;
+    const SUMMARY_MAX_LINES = 3;
     const HISTORY_LIMIT = 200;
     const HISTORY_STORAGE_KEY = 'qwen-summarizer-history-v1';
     const SENTENCE_BREAK_CHARS = new Set([
@@ -1652,35 +1653,135 @@
       } catch (_) {}
     }
 
+    function compactText(text) {
+      return text.replace(/\s+/g, ' ').trim();
+    }
+
+    function stripSummaryPrefix(text) {
+      return text
+        .replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '')
+        .replace(/^assistant\s*[:：]\s*/i, '')
+        .replace(/^summary\s*[:：]\s*/i, '')
+        .replace(/^요약\s*[:：]\s*/i, '')
+        .trim();
+    }
+
+    function comparableSummaryText(text) {
+      return stripSummaryPrefix(text)
+        .toLowerCase()
+        .replace(/[^\p{Letter}\p{Number}]+/gu, '');
+    }
+
+    function makeShingles(text) {
+      const normalized = comparableSummaryText(text);
+      if (normalized.length <= 12) return new Set(normalized ? [normalized] : []);
+
+      const shingles = new Set();
+      for (let index = 0; index <= normalized.length - 3; index += 1) {
+        shingles.add(normalized.slice(index, index + 3));
+      }
+      return shingles;
+    }
+
+    function hasHighOverlap(left, right) {
+      const leftText = comparableSummaryText(left);
+      const rightText = comparableSummaryText(right);
+      if (!leftText || !rightText) return false;
+      if (leftText === rightText) return true;
+
+      const shorterLength = Math.min(leftText.length, rightText.length);
+      if (shorterLength >= 12 && (leftText.includes(rightText) || rightText.includes(leftText))) {
+        return true;
+      }
+
+      const leftTokens = stripSummaryPrefix(left).toLowerCase().match(/[\p{Letter}\p{Number}]+/gu) || [];
+      const rightTokens = stripSummaryPrefix(right).toLowerCase().match(/[\p{Letter}\p{Number}]+/gu) || [];
+      const shorterTokenCount = Math.min(leftTokens.length, rightTokens.length);
+      if (shorterTokenCount >= 4) {
+        const rightTokenSet = new Set(rightTokens);
+        const sharedTokens = new Set(leftTokens.filter((token) => rightTokenSet.has(token)));
+        if (sharedTokens.size / shorterTokenCount >= 0.65) return true;
+      }
+
+      const leftShingles = makeShingles(leftText);
+      const rightShingles = makeShingles(rightText);
+      if (!leftShingles.size || !rightShingles.size) return false;
+
+      let shared = 0;
+      for (const shingle of leftShingles) {
+        if (rightShingles.has(shingle)) shared += 1;
+      }
+
+      return shared / Math.min(leftShingles.size, rightShingles.size) >= 0.82;
+    }
+
+    function splitSummaryCandidateLines(text) {
+      const explicitLines = text
+        .split(/\n+/)
+        .map(stripSummaryPrefix)
+        .filter(Boolean);
+
+      if (explicitLines.length > 1) return explicitLines;
+
+      const compacted = explicitLines[0] || stripSummaryPrefix(compactText(text));
+      if (!compacted) return [];
+
+      const sentences = splitTextIntoSentences(compacted);
+      return sentences.length > 1 ? sentences.map(stripSummaryPrefix).filter(Boolean) : [compacted];
+    }
+
+    function removeContextPrefix(text, contextSummaries) {
+      let compacted = compactText(text);
+      const contextCandidates = [
+        contextSummaries.map(compactText).filter(Boolean).join(' / '),
+        ...contextSummaries.map(compactText),
+      ].filter(Boolean);
+
+      for (const context of contextCandidates) {
+        if (!compacted.startsWith(context)) continue;
+
+        compacted = compacted
+          .slice(context.length)
+          .replace(/^[\s/|,.;:：-]+/, '')
+          .trim();
+      }
+
+      return compacted;
+    }
+
+    function dedupeSummaryLines(text, contextSummaries) {
+      const contextLines = contextSummaries.flatMap(splitSummaryCandidateLines);
+      const accepted = [];
+
+      for (const line of splitSummaryCandidateLines(text)) {
+        if (contextLines.some((contextLine) => hasHighOverlap(line, contextLine))) continue;
+        if (accepted.some((acceptedLine) => hasHighOverlap(line, acceptedLine))) continue;
+
+        accepted.push(line);
+        if (accepted.length >= SUMMARY_MAX_LINES) break;
+      }
+
+      return accepted;
+    }
+
     function cleanSummaryOutput(text, contextSummaries = []) {
-      let cleaned = text
+      const cleaned = text
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .trimStart()
         .replace(/^assistant\s*[:：]\s*/i, '')
         .replace(/^summary\s*[:：]\s*/i, '')
         .replace(/^요약\s*[:：]\s*/i, '')
         .replace(/^\s*[-*•]\s*/, '')
-        .replace(/\s+/g, ' ')
         .trim();
 
-      for (const context of contextSummaries) {
-        const normalizedContext = context.replace(/\s+/g, ' ').trim();
-        if (!normalizedContext || !cleaned.startsWith(normalizedContext)) continue;
-
-        cleaned = cleaned
-          .slice(normalizedContext.length)
-          .replace(/^[\s/|,.;:：-]+/, '')
-          .trim();
-      }
-
-      return cleaned;
+      return dedupeSummaryLines(removeContextPrefix(cleaned, contextSummaries), contextSummaries).join('\n');
     }
 
     function buildSummaryRequest(inputText, contextSummaries) {
       const contextNote = contextSummaries.length
-        ? `\nRef only: ${contextSummaries.join(' / ')}`
+        ? `\nRef only: ${contextSummaries.map(compactText).join(' / ')}`
         : '';
-      const prompt = `/no_think\nSummarize only this segment in Korean, one line. Do not repeat Ref.${contextNote}\n\n${inputText}`;
+      const prompt = `/no_think\nSummarize only this segment in Korean, up to 3 short lines. Do not repeat Ref.${contextNote}\n\n${inputText}`;
 
       return {
         input: [{ role: 'user', content: prompt }],
@@ -1700,7 +1801,7 @@
     }
 
     function renderOutputSegments(segments, fallbackMessage = '') {
-      const visibleText = segments.filter(Boolean).join('\n').trim();
+      const visibleText = segments.filter(Boolean).join('\n\n').trim();
 
       if (!visibleText) {
         $('output-box').className = 'output-box empty';
@@ -1791,7 +1892,7 @@
 
         if (runId !== summaryRunId) return;
 
-        const finalText = outputSegments.filter(Boolean).join('\n').trim();
+        const finalText = outputSegments.filter(Boolean).join('\n\n').trim();
         if (!finalText) {
           outputBox.className = 'output-box empty';
           outputBox.textContent = '(출력이 없습니다 - 다시 시도해 주세요)';
