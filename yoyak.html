@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>로컬 요약기 - Qwen3 1.7B</title>
+  <title>로컬 요약기 - Gemma 3 1B</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
@@ -875,7 +875,7 @@
       <div class="app-head">
         <h1><span class="lime-chip">로컬</span> 요약기</h1>
         <p class="subtitle">
-          <strong id="hero-model-label">Qwen3 1.7B</strong> 모델을 브라우저 안에서만 실행합니다.
+          <strong id="hero-model-label">Gemma 3 1B</strong> 모델을 브라우저 안에서만 실행합니다.
         </p>
         <span class="privacy-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -896,11 +896,12 @@
           <span class="device-pill" id="device-pill">감지 중...</span>
         </div>
 
-        <p class="model-help" id="model-help">Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.</p>
+        <p class="model-help" id="model-help">Gemma 3 1B IT ONNX GQA 모델을 사용해 요약 품질을 비교합니다.</p>
 
         <div class="model-mode-row" aria-label="모델 선택">
-          <button class="model-mode-btn active" data-model-key="qwen3-17b" type="button">품질 1.7B</button>
-          <button class="model-mode-btn" data-model-key="qwen3-06b" type="button">저메모리 0.6B</button>
+          <button class="model-mode-btn active" data-model-key="gemma3-1b" type="button">Gemma 3 1B</button>
+          <button class="model-mode-btn" data-model-key="qwen3-06b" type="button">Qwen3 0.6B</button>
+          <button class="model-mode-btn" data-model-key="granite4-1b" type="button">Granite 1B</button>
         </div>
 
         <div class="progress-bar-wrap" aria-hidden="true">
@@ -915,7 +916,7 @@
         <div id="error-box"></div>
 
         <button class="load-btn" id="load-btn" type="button">
-          모델 다운로드 및 불러오기 (~1 GB)
+          Gemma 3 1B 다운로드 및 불러오기 (~860 MB)
         </button>
       </section>
 
@@ -923,7 +924,7 @@
         <div class="loader-header">
           <div>
             <h2 id="summarizer-title">요약</h2>
-            <p class="section-note">긴 텍스트를 500~1000자 단위로 나누고, 앞선 요약을 맥락으로 이어갑니다.</p>
+            <p class="section-note">긴 텍스트를 500~1000자 단위로 나누고, 각 칸을 독립적으로 요약합니다.</p>
           </div>
           <div class="summarizer-tools">
             <span class="active-model" id="active-model-label">모델 준비 중</span>
@@ -971,7 +972,7 @@
       </svg>
       <p>
         모델:
-        <a id="footer-model-link" href="https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX" target="_blank" rel="noopener">onnx-community/Qwen3-1.7B-ONNX</a>
+        <a id="footer-model-link" href="https://huggingface.co/onnx-community/gemma-3-1b-it-ONNX-GQA" target="_blank" rel="noopener">onnx-community/gemma-3-1b-it-ONNX-GQA</a>
         ·
         <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a>
         로 제작
@@ -984,28 +985,47 @@
       'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/transformers.min.js';
 
     const MODEL_PRESETS = {
-      'qwen3-17b': {
-        id: 'onnx-community/Qwen3-1.7B-ONNX',
-        label: 'Qwen3 1.7B ONNX',
-        shortLabel: 'Qwen3 1.7B',
-        href: 'https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX',
-        description: 'Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.',
-        dtype: 'q4f16',
-        sizeLabel: '~1.43 GB',
-        maxNewTokens: 256,
+      'gemma3-1b': {
+        id: 'onnx-community/gemma-3-1b-it-ONNX-GQA',
+        label: 'Gemma 3 1B IT ONNX GQA',
+        shortLabel: 'Gemma 3 1B',
+        href: 'https://huggingface.co/onnx-community/gemma-3-1b-it-ONNX-GQA',
+        description: 'Gemma 3 1B IT ONNX GQA 모델을 사용해 요약 품질을 비교합니다.',
+        task: 'text-generation',
+        dtype: 'q4',
+        sizeLabel: '~860 MB',
+        maxNewTokens: 240,
+        promptPrefix: '',
+        promptInstruction: 'Summarize in Korean. up to 3 short lines. Output only. No explanation.',
       },
       'qwen3-06b': {
         id: 'onnx-community/Qwen3-0.6B-ONNX',
         label: 'Qwen3 0.6B ONNX',
         shortLabel: 'Qwen3 0.6B',
         href: 'https://huggingface.co/onnx-community/Qwen3-0.6B-ONNX',
-        description: '저메모리용 Qwen3 0.6B ONNX 모델을 사용합니다. 1.7B가 메모리 부족으로 실패할 때 선택하세요.',
+        description: '저메모리용 Qwen3 0.6B ONNX 모델을 사용합니다.',
+        task: 'text-generation',
         dtype: 'q4f16',
         sizeLabel: '~570 MB',
         maxNewTokens: 220,
+        promptPrefix: '/no_think\n',
+      },
+      'granite4-1b': {
+        id: 'onnx-community/granite-4.0-1b-ONNX-web',
+        label: 'Granite 4.0 1B ONNX Web',
+        shortLabel: 'Granite 4.0 1B',
+        href: 'https://huggingface.co/onnx-community/granite-4.0-1b-ONNX-web',
+        description: 'Granite 4.0 1B ONNX Web 모델을 사용해 요약 품질을 비교합니다.',
+        task: 'text-generation',
+        dtype: 'q4',
+        sizeLabel: '~1.8 GB',
+        maxNewTokens: 240,
+        promptPrefix: '',
       },
     };
-    let activeModelKey = 'qwen3-17b';
+    const DEFAULT_MODEL_KEY = 'gemma3-1b';
+    const MODEL_STORAGE_KEY = 'qwen-summarizer-active-model-v1';
+    let activeModelKey = getInitialModelKey();
     let MODEL_CONFIG = MODEL_PRESETS[activeModelKey];
 
     const CHUNK_MIN_CHARS = 500;
@@ -1057,6 +1077,21 @@
       }
     }
 
+    function getInitialModelKey() {
+      try {
+        const storedKey = localStorage.getItem(MODEL_STORAGE_KEY);
+        if (MODEL_PRESETS[storedKey]) return storedKey;
+      } catch (_) {}
+
+      return DEFAULT_MODEL_KEY;
+    }
+
+    function saveActiveModelKey() {
+      try {
+        localStorage.setItem(MODEL_STORAGE_KEY, activeModelKey);
+      } catch (_) {}
+    }
+
     function renderModelModeButtons() {
       document.querySelectorAll('[data-model-key]').forEach((button) => {
         const isActive = button.dataset.modelKey === activeModelKey;
@@ -1082,6 +1117,7 @@
 
       activeModelKey = nextKey;
       MODEL_CONFIG = MODEL_PRESETS[activeModelKey];
+      saveActiveModelKey();
       summaryRunId += 1;
       isSummarizing = false;
       await disposeGenerator();
@@ -1242,7 +1278,7 @@
 
     function createPipeline(device, runId) {
       return pipeline(
-        'text-generation',
+        MODEL_CONFIG.task,
         MODEL_CONFIG.id,
         {
           dtype: MODEL_CONFIG.dtype,
@@ -1730,31 +1766,18 @@
       return sentences.length > 1 ? sentences.map(stripSummaryPrefix).filter(Boolean) : [compacted];
     }
 
-    function removeContextPrefix(text, contextSummaries) {
-      let compacted = compactText(text);
-      const contextCandidates = [
-        contextSummaries.map(compactText).filter(Boolean).join(' / '),
-        ...contextSummaries.map(compactText),
-      ].filter(Boolean);
-
-      for (const context of contextCandidates) {
-        if (!compacted.startsWith(context)) continue;
-
-        compacted = compacted
-          .slice(context.length)
-          .replace(/^[\s/|,.;:：-]+/, '')
-          .trim();
-      }
-
-      return compacted;
+    function stripSummaryLeadIn(text) {
+      return text
+        .replace(/^(?:다음|아래)(?:은|는)?\s*[^\n]{0,80}?요약[^\n]{0,80}?입니다\s*[.:：]?\s*/i, '')
+        .replace(/^3\s*줄\s*요약\s*[.:：]\s*/i, '')
+        .replace(/^한국어\s*요약\s*[.:：]\s*/i, '')
+        .trimStart();
     }
 
-    function dedupeSummaryLines(text, contextSummaries) {
-      const contextLines = contextSummaries.flatMap(splitSummaryCandidateLines);
+    function dedupeSummaryLines(text) {
       const accepted = [];
 
       for (const line of splitSummaryCandidateLines(text)) {
-        if (contextLines.some((contextLine) => hasHighOverlap(line, contextLine))) continue;
         if (accepted.some((acceptedLine) => hasHighOverlap(line, acceptedLine))) continue;
 
         accepted.push(line);
@@ -1764,28 +1787,27 @@
       return accepted;
     }
 
-    function cleanSummaryOutput(text, contextSummaries = []) {
-      const cleaned = text
+    function cleanSummaryOutput(text) {
+      const cleaned = stripSummaryLeadIn(text
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .trimStart()
         .replace(/^assistant\s*[:：]\s*/i, '')
         .replace(/^summary\s*[:：]\s*/i, '')
         .replace(/^요약\s*[:：]\s*/i, '')
         .replace(/^\s*[-*•]\s*/, '')
-        .trim();
+        .trim());
 
-      return dedupeSummaryLines(removeContextPrefix(cleaned, contextSummaries), contextSummaries).join('\n');
+      return dedupeSummaryLines(cleaned).join('\n');
     }
 
-    function buildSummaryRequest(inputText, contextSummaries) {
-      const contextNote = contextSummaries.length
-        ? `\nRef only: ${contextSummaries.map(compactText).join(' / ')}`
-        : '';
-      const prompt = `/no_think\nSummarize only this segment in Korean, up to 3 short lines. Do not repeat Ref.${contextNote}\n\n${inputText}`;
+    function buildSummaryRequest(inputText) {
+      const instruction = MODEL_CONFIG.promptInstruction
+        || 'Summarize in Korean, up to 3 short lines.';
+      const prompt = `${MODEL_CONFIG.promptPrefix}${instruction}\n\n${inputText}`;
 
       return {
         input: [{ role: 'user', content: prompt }],
-        clean: (text) => cleanSummaryOutput(text, contextSummaries),
+        clean: cleanSummaryOutput,
       };
     }
 
@@ -1813,26 +1835,30 @@
       $('output-box').textContent = visibleText;
     }
 
-    async function summarizeChunk(chunk, chunkIndex, chunkTotal, contextSummaries, segments, runId) {
-      const request = buildSummaryRequest(chunk.text.trim(), contextSummaries);
+    async function summarizeChunk(chunk, chunkIndex, chunkTotal, segments, runId) {
+      const request = buildSummaryRequest(chunk.text.trim());
       let fullText = '';
-      const streamer = new TextStreamer(generator.tokenizer, {
-        skip_prompt: true,
-        skip_special_tokens: true,
-        callback_function: (token) => {
-          if (runId !== summaryRunId) return;
-
-          fullText += token;
-          segments[chunkIndex] = request.clean(fullText);
-          renderOutputSegments(segments, `${chunkIndex + 1}/${chunkTotal} 요약 중...`);
-        },
-      });
-
-      const result = await generator(request.input, {
+      const streamerTokenizer = generator.tokenizer || generator.processor?.tokenizer;
+      const generateOptions = {
         max_new_tokens: MODEL_CONFIG.maxNewTokens,
         do_sample: false,
-        streamer,
-      });
+      };
+
+      if (streamerTokenizer) {
+        generateOptions.streamer = new TextStreamer(streamerTokenizer, {
+          skip_prompt: true,
+          skip_special_tokens: true,
+          callback_function: (token) => {
+            if (runId !== summaryRunId) return;
+
+            fullText += token;
+            segments[chunkIndex] = request.clean(fullText);
+            renderOutputSegments(segments, `${chunkIndex + 1}/${chunkTotal} 요약 중...`);
+          },
+        });
+      }
+
+      const result = await generator(request.input, generateOptions);
 
       if (runId !== summaryRunId) return '';
 
@@ -1855,7 +1881,6 @@
       const errBox = $('summarizer-error-box');
       const runId = ++summaryRunId;
       const outputSegments = new Array(chunksToSummarize.length).fill('');
-      const completedSummaries = [];
       const historyToAdd = [];
 
       isSummarizing = true;
@@ -1871,18 +1896,15 @@
         for (const [index, chunk] of chunksToSummarize.entries()) {
           if (runId !== summaryRunId) return;
 
-          const contextSummaries = completedSummaries.slice(-2);
           summaryBtn.innerHTML = `<span class="spinner"></span> ${index + 1}/${chunksToSummarize.length} 요약 중...`;
           const summarizedText = await summarizeChunk(
             chunk,
             index,
             chunksToSummarize.length,
-            contextSummaries,
             outputSegments,
             runId
           );
           outputSegments[index] = summarizedText;
-          completedSummaries.push(summarizedText);
           renderOutputSegments(outputSegments, `${index + 1}/${chunksToSummarize.length} 요약 완료`);
           historyToAdd.push({
             source: chunk.text.trim(),
