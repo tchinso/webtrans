@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로컬 요약기 - Qwen3 1.7B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <script>
+    (() => {
+      try {
+        const storedTheme = localStorage.getItem('summarizer-theme');
+        document.documentElement.dataset.theme = storedTheme === 'light' ? 'light' : 'dark';
+      } catch (_) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --primary: #150f23;
+      --ink-deep: #1f1633;
+      --on-primary: #ffffff;
+      --accent-lime: #c2ef4e;
+      --accent-pink: #fa7faa;
+      --accent-violet: #6a5fc1;
+      --accent-violet-deep: #422082;
+      --accent-violet-mid: #79628c;
+      --hairline-violet: #362d59;
+      --hairline-cool: #cfcfdb;
+      --hairline-cloud: #e5e7eb;
+      --success: #3ba55d;
+      --warning: #faa61a;
+      --error: #ed4245;
+      --ring-focus: rgba(59, 130, 246, 0.5);
+      --radius-xs: 4px;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-xl: 12px;
+      --radius-xxl: 18px;
+      --bg: var(--ink-deep);
+      --surface: var(--primary);
+      --surface-raised: #271d3d;
+      --surface-soft: rgba(255, 255, 255, 0.08);
+      --field: var(--primary);
+      --border: var(--hairline-violet);
+      --text: var(--on-primary);
+      --text-muted: rgba(255, 255, 255, 0.72);
+      --button-bg: var(--on-primary);
+      --button-text: var(--ink-deep);
+      --button-hover: #f0f0f0;
+      --ghost-bg: rgba(255, 255, 255, 0.18);
+      --shadow: none;
+    }
+
+    html[data-theme="light"] {
+      --bg: var(--on-primary);
+      --surface: var(--on-primary);
+      --surface-raised: #f7f5fb;
+      --surface-soft: #f0f0f0;
+      --field: var(--on-primary);
+      --border: var(--hairline-cloud);
+      --text: var(--ink-deep);
+      --text-muted: #625a70;
+      --button-bg: var(--primary);
+      --button-text: var(--on-primary);
+      --button-hover: #1a1a1a;
+      --ghost-bg: #f0f0f0;
+      --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.1) 0 4px 6px -4px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Rubik, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      letter-spacing: 0;
+      line-height: 1.5;
+      padding: 18px 16px 20px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    html[data-theme="light"] body {
+      background: var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .shell {
+      width: min(100%, 1180px);
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      background: var(--accent-lime);
+      border-radius: var(--radius-xs);
+      color: var(--ink-deep);
+      font-family: "Space Grotesk", Rubik, system-ui, sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .model-link,
+    .theme-toggle {
+      min-height: 40px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .model-link {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      background: var(--ghost-bg);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: var(--button-bg);
+      color: var(--button-text);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .theme-track {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--button-text) 18%, transparent);
+    }
+
+    .theme-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent-lime);
+      transition: transform 0.2s ease;
+    }
+
+    html[data-theme="light"] .theme-thumb {
+      transform: translateX(16px);
+    }
+
+    .app-head {
+      display: none;
+    }
+
+    h1 {
+      color: var(--text);
+      font-family: "Space Grotesk", Rubik, system-ui, sans-serif;
+      font-size: clamp(48px, 10vw, 88px);
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.02;
+    }
+
+    .lime-chip {
+      display: inline-block;
+      padding: 0 12px;
+      border-radius: var(--radius-xs);
+      background: var(--accent-lime);
+      color: var(--ink-deep);
+    }
+
+    .subtitle {
+      max-width: 680px;
+      margin-top: 18px;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 2;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .privacy-badge svg {
+      flex: 0 0 auto;
+      color: var(--accent-lime);
+    }
+
+    .workspace {
+      display: grid;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .card {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      padding: 28px;
+    }
+
+    .loader-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
+    h3 {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .section-note {
+      display: none;
+    }
+
+    .device-pill {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      background: var(--primary);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.25px;
+      line-height: 1.8;
+      text-transform: uppercase;
+    }
+
+    html[data-theme="light"] .device-pill {
+      background: var(--surface-raised);
+    }
+
+    .device-pill.webgpu {
+      border-color: color-mix(in srgb, var(--accent-violet) 55%, var(--border));
+      color: var(--accent-violet);
+    }
+
+    .device-pill.cpu {
+      border-color: rgba(250, 166, 26, 0.55);
+      color: var(--warning);
+    }
+
+    .model-help,
+    .model-status {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .summarizer-tools {
+      display: grid;
+      gap: 10px;
+      min-width: min(100%, 420px);
+    }
+
+    .active-model {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 5px 9px;
+      background: var(--surface-raised);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .progress-bar-wrap {
+      height: 10px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+      background: var(--surface-raised);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: var(--radius-sm);
+      background: var(--accent-lime);
+      transition: width 0.3s ease;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .file-list {
+      max-height: 128px;
+      margin-top: 12px;
+      overflow-y: auto;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+      border-bottom: 1px solid var(--border);
+      padding: 4px 0;
+    }
+
+    .file-item:last-child { border-bottom: none; }
+
+    .file-dot {
+      width: 6px;
+      height: 6px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--text-muted);
+    }
+
+    .file-dot.done { background: var(--success); }
+
+    .file-dot.loading {
+      background: var(--accent-lime);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .file-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-pct {
+      flex: 0 0 auto;
+      color: var(--text);
+    }
+
+    .load-btn,
+    .summarize-btn,
+    .small-action-btn,
+    .history-action-btn {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: var(--radius-md);
+      background: var(--button-bg);
+      color: var(--button-text);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      line-height: 1.14;
+      text-transform: uppercase;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .load-btn,
+    .summarize-btn {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .load-btn {
+      min-height: 56px;
+      font-size: 16px;
+    }
+
+    .small-action-btn,
+    .history-action-btn {
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--ghost-bg);
+      color: var(--text);
+      font-size: 13px;
+      text-transform: none;
+      white-space: nowrap;
+    }
+
+    .small-action-btn.danger,
+    .history-action-btn.danger {
+      border-color: rgba(237, 66, 69, 0.55);
+      color: var(--error);
+    }
+
+    .load-btn:hover:not(:disabled),
+    .summarize-btn:hover:not(:disabled),
+    .small-action-btn:hover:not(:disabled),
+    .history-action-btn:hover:not(:disabled),
+    .theme-toggle:hover,
+    .model-link:hover {
+      background: var(--button-hover);
+      color: var(--button-text);
+    }
+
+    .load-btn:active:not(:disabled),
+    .summarize-btn:active:not(:disabled),
+    .small-action-btn:active:not(:disabled),
+    .history-action-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .load-btn:disabled,
+    .summarize-btn:disabled,
+    .small-action-btn:disabled,
+    .history-action-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    #summarizer-section { display: none; }
+
+    textarea,
+    .output-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--field);
+      color: var(--text);
+    }
+
+    html[data-theme="light"] textarea,
+    html[data-theme="light"] .output-box {
+      border-color: var(--hairline-cool);
+    }
+
+    textarea:focus {
+      border-color: var(--ring-focus);
+      box-shadow: rgba(0, 0, 0, 0.15) 0 2px 10px inset, 0 0 0 3px var(--ring-focus);
+    }
+
+    .chunk-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .chunk-header,
+    .history-header,
+    .chunk-card-header,
+    .history-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    #chunk-summary,
+    #history-count,
+    .chunk-count,
+    .history-meta {
+      display: inline-flex;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .chunk-list,
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .chunk-card,
+    .history-entry {
+      display: grid;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-raised);
+      padding: 12px;
+    }
+
+    .chunk-title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: clamp(260px, 38vh, 480px);
+      padding: 18px 18px 44px;
+      resize: vertical;
+      outline: none;
+      font-size: 20px;
+      line-height: 1.7;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .chunk-card textarea {
+      min-height: clamp(220px, 30vh, 360px);
+      padding-bottom: 18px;
+    }
+
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .summarize-btn {
+      min-height: 68px;
+      margin: 18px 0;
+      font-size: 20px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid color-mix(in srgb, var(--button-text) 28%, transparent);
+      border-top-color: var(--button-text);
+      border-radius: 999px;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .output-wrap {
+      position: relative;
+    }
+
+    .output-box {
+      min-height: 220px;
+      padding: 18px;
+      color: var(--text);
+      font-size: 19px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .output-box.empty {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .history-panel {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-list {
+      max-height: 440px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .history-empty {
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .history-text-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .history-text {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .history-text strong {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .history-text p {
+      max-height: 150px;
+      overflow: auto;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .history-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--ghost-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent-violet-mid);
+      background: var(--surface-raised);
+    }
+
+    #error-box,
+    #summarizer-error-box {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid rgba(237, 66, 69, 0.55);
+      border-radius: var(--radius-md);
+      background: rgba(237, 66, 69, 0.14);
+      color: var(--error);
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+
+    footer {
+      display: none;
+    }
+
+    .squiggle {
+      width: 100%;
+      height: 18px;
+      margin-bottom: 16px;
+      color: var(--accent-lime);
+    }
+
+    footer p {
+      line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 14px 12px 18px;
+      }
+
+      .topbar {
+        align-items: center;
+        flex-direction: row;
+        margin-bottom: 0;
+      }
+
+      .top-actions {
+        width: auto;
+      }
+
+      .theme-toggle {
+        flex: 0 0 auto;
+      }
+
+      .app-head {
+        max-width: none;
+      }
+
+      .subtitle {
+        line-height: 1.65;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .loader-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .summarizer-tools {
+        width: 100%;
+      }
+
+      .chunk-header,
+      .history-header,
+      .chunk-card-header,
+      .history-entry-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .small-action-btn,
+      .history-action-btn {
+        width: 100%;
+      }
+
+      textarea {
+        min-height: 240px;
+        font-size: 18px;
+      }
+
+      .chunk-card textarea {
+        min-height: 220px;
+      }
+
+      .summarize-btn {
+        min-height: 64px;
+      }
+
+      .output-box {
+        min-height: 190px;
+        font-size: 18px;
+      }
+
+      .history-text-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-actions {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .top-actions {
+        flex-direction: row;
+      }
+
+      .theme-toggle {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="topbar">
+        <div class="brand" aria-label="로컬 요약기">
+          <span class="brand-mark">S</span>
+          <span>로컬 요약기</span>
+        </div>
+        <div class="top-actions">
+          <a class="model-link" href="https://github.com/tchinso/WebTrans" target="_blank" rel="noopener">GitHub</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="true" aria-label="화이트 모드로 전환">
+            <span class="theme-track" aria-hidden="true"><span class="theme-thumb"></span></span>
+            <span id="theme-label">다크</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="app-head">
+        <h1><span class="lime-chip">로컬</span> 요약기</h1>
+        <p class="subtitle">
+          <strong>Qwen3 1.7B</strong> 모델을 브라우저 안에서만 실행합니다.
+        </p>
+        <span class="privacy-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+          </svg>
+          입력한 텍스트는 이 기기를 벗어나지 않습니다
+        </span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="card" id="loader-section" aria-labelledby="loader-title">
+        <div class="loader-header">
+          <div>
+            <h2 id="loader-title">요약 모델 불러오기</h2>
+            <p class="section-note">모델은 한 번 다운로드한 뒤 로컬에서 실행됩니다.</p>
+          </div>
+          <span class="device-pill" id="device-pill">감지 중...</span>
+        </div>
+
+        <p class="model-help" id="model-help">Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.</p>
+
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-label">
+          <span id="progress-text">불러올 준비 완료</span>
+          <span id="progress-pct">0%</span>
+        </div>
+
+        <div class="file-list" id="file-list"></div>
+        <div id="error-box"></div>
+
+        <button class="load-btn" id="load-btn" type="button">
+          모델 다운로드 및 불러오기 (~1 GB)
+        </button>
+      </section>
+
+      <section class="card" id="summarizer-section" aria-labelledby="summarizer-title">
+        <div class="loader-header">
+          <div>
+            <h2 id="summarizer-title">요약</h2>
+            <p class="section-note">긴 텍스트를 500~1000자 단위로 나누고, 앞선 요약을 맥락으로 이어갑니다.</p>
+          </div>
+          <div class="summarizer-tools">
+            <span class="active-model" id="active-model-label">모델 준비 중</span>
+          </div>
+        </div>
+
+        <div class="chunk-panel">
+          <div class="chunk-header">
+            <div>
+              <h3>원문 칸</h3>
+              <span id="chunk-summary">1칸 · 0자</span>
+            </div>
+            <button class="small-action-btn" id="add-chunk-btn" type="button">칸 추가</button>
+          </div>
+          <div class="chunk-list" id="input-chunks"></div>
+        </div>
+
+        <button class="summarize-btn" id="summarize-btn" type="button">
+          요약하기
+        </button>
+
+        <div class="output-wrap">
+          <div class="output-box empty" id="output-box">요약 결과가 여기에 표시됩니다...</div>
+          <button class="copy-btn" id="copy-btn" type="button" style="display:none">복사</button>
+        </div>
+
+        <div id="summarizer-error-box"></div>
+
+        <section class="history-panel" aria-labelledby="history-title">
+          <div class="history-header">
+            <div>
+              <h3 id="history-title">최근 요약</h3>
+              <span id="history-count">0 / 200칸</span>
+            </div>
+            <button class="small-action-btn danger" id="clear-history-btn" type="button">전체 삭제</button>
+          </div>
+          <div class="history-list" id="history-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <svg class="squiggle" viewBox="0 0 960 22" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 11 C80 1 160 21 240 11 S400 1 480 11 640 21 720 11 880 1 960 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+      </svg>
+      <p>
+        모델:
+        <a id="footer-model-link" href="https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX" target="_blank" rel="noopener">onnx-community/Qwen3-1.7B-ONNX</a>
+        ·
+        <a href="https://huggingface.co/docs/transformers.js" target="_blank" rel="noopener">Transformers.js</a>
+        로 제작
+      </p>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { pipeline, TextStreamer } from
+      'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/transformers.min.js';
+
+    const MODEL_CONFIG = {
+      id: 'onnx-community/Qwen3-1.7B-ONNX',
+      label: 'Qwen3 1.7B ONNX',
+      shortLabel: 'Qwen3 1.7B',
+      href: 'https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX',
+      description: 'Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.',
+      dtype: 'q4f16',
+      sizeLabel: '~1.43 GB',
+      maxNewTokens: 256,
+    };
+
+    const CHUNK_MIN_CHARS = 500;
+    const CHUNK_TARGET_CHARS = 800;
+    const CHUNK_MAX_CHARS = 1000;
+    const CHUNK_RANGE_LABEL = `${CHUNK_MIN_CHARS}~${CHUNK_MAX_CHARS}자`;
+    const HISTORY_LIMIT = 200;
+    const HISTORY_STORAGE_KEY = 'qwen-summarizer-history-v1';
+    const SENTENCE_BREAK_CHARS = new Set([
+      '。', '．', '.', '!', '?', '！', '？', '…', '؛', ';', '；',
+    ]);
+    const PHRASE_BREAK_CHARS = new Set([
+      '、', '，', ',', ':', '：',
+    ]);
+    const CLOSING_BREAK_CHARS = new Set([
+      '"', "'", '”', '’', '」', '』', '）', ')', ']', '】', '｝', '}', '》', '〉',
+    ]);
+
+    let generator = null;
+    let isLoading = false;
+    let isSummarizing = false;
+    let loadRunId = 0;
+    let summaryRunId = 0;
+    let inputChunks = [];
+    let historyEntries = [];
+    const fileProgress = {};
+
+    const $ = (id) => document.getElementById(id);
+
+    function createId(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function updateModelLabels() {
+      const labelPrefix = generator ? '사용 중' : '선택';
+      $('active-model-label').textContent = `${labelPrefix}: ${MODEL_CONFIG.shortLabel}`;
+      $('footer-model-link').href = MODEL_CONFIG.href;
+      $('footer-model-link').textContent = MODEL_CONFIG.id;
+      $('model-help').textContent = MODEL_CONFIG.description;
+      $('load-btn').textContent = `${MODEL_CONFIG.shortLabel} 다운로드 및 불러오기 (${MODEL_CONFIG.sizeLabel})`;
+      document.title = `로컬 요약기 - ${MODEL_CONFIG.shortLabel}`;
+    }
+
+    function resetProgress() {
+      for (const key of Object.keys(fileProgress)) {
+        delete fileProgress[key];
+      }
+
+      $('progress-bar').style.width = '0%';
+      $('progress-pct').textContent = '0%';
+      $('progress-text').textContent = '불러올 준비 완료';
+      $('file-list').innerHTML = '';
+    }
+
+    function resetSummarizerOutput(message = '요약 결과가 여기에 표시됩니다...') {
+      $('output-box').className = 'output-box empty';
+      $('output-box').textContent = message;
+      $('copy-btn').style.display = 'none';
+      $('summarizer-error-box').style.display = 'none';
+    }
+
+    function setSummaryButtonIdle() {
+      const chunkCount = getFilledChunks().length;
+      $('summarize-btn').disabled = isLoading || isSummarizing || !generator || chunkCount === 0;
+      $('summarize-btn').textContent = chunkCount > 1 ? `${chunkCount}칸 요약하기` : '요약하기';
+    }
+
+    async function disposeGenerator() {
+      if (!generator) return;
+
+      const oldGenerator = generator;
+      generator = null;
+
+      if (typeof oldGenerator.dispose === 'function') {
+        try {
+          await oldGenerator.dispose();
+        } catch (err) {
+          console.warn('기존 모델 정리 중 오류:', err);
+        }
+      }
+    }
+
+    function initApp() {
+      inputChunks = [createChunk('')];
+      historyEntries = loadHistoryEntries();
+      updateModelLabels();
+      renderInputChunks();
+      renderHistory();
+      setSummaryButtonIdle();
+    }
+
+    function setTheme(theme) {
+      const nextTheme = theme === 'light' ? 'light' : 'dark';
+      const isDark = nextTheme === 'dark';
+      document.documentElement.dataset.theme = nextTheme;
+      try {
+        localStorage.setItem('summarizer-theme', nextTheme);
+      } catch (_) {}
+      $('theme-toggle').setAttribute('aria-pressed', String(isDark));
+      $('theme-toggle').setAttribute('aria-label', isDark ? '화이트 모드로 전환' : '다크 모드로 전환');
+      $('theme-label').textContent = isDark ? '다크' : '화이트';
+    }
+
+    function initTheme() {
+      setTheme(document.documentElement.dataset.theme);
+      $('theme-toggle').addEventListener('click', () => {
+        setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+      });
+    }
+
+    async function detectDevice() {
+      const pill = $('device-pill');
+      pill.classList.remove('webgpu', 'cpu');
+
+      if (navigator.gpu) {
+        try {
+          const adapter = await navigator.gpu.requestAdapter();
+          if (adapter) {
+            pill.textContent = 'WebGPU';
+            pill.classList.add('webgpu');
+            return 'webgpu';
+          }
+        } catch (_) {}
+      }
+
+      pill.textContent = 'CPU (wasm)';
+      pill.classList.add('cpu');
+      return 'wasm';
+    }
+
+    function renderFileList() {
+      const list = $('file-list');
+      list.innerHTML = '';
+
+      for (const [name, info] of Object.entries(fileProgress)) {
+        const pct = info.total > 0
+          ? Math.round((info.loaded / info.total) * 100)
+          : (info.done ? 100 : 0);
+        const dot = document.createElement('div');
+        dot.className = 'file-item';
+        dot.innerHTML = `
+          <span class="file-dot ${info.done ? 'done' : 'loading'}"></span>
+          <span class="file-name" title="${name}">${name}</span>
+          <span class="file-pct">${info.done ? '완료' : pct + '%'}</span>
+        `;
+        list.appendChild(dot);
+      }
+    }
+
+    function overallProgress() {
+      let loaded = 0;
+      let total = 0;
+
+      for (const info of Object.values(fileProgress)) {
+        loaded += info.loaded || 0;
+        total += info.total || 0;
+      }
+
+      return total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+    }
+
+    function onProgress(progress) {
+      if (!progress || !progress.file) return;
+
+      const key = progress.file;
+      if (!fileProgress[key]) {
+        fileProgress[key] = { loaded: 0, total: 0, done: false };
+      }
+
+      if (progress.status === 'progress') {
+        fileProgress[key].loaded = progress.loaded || 0;
+        fileProgress[key].total = progress.total || 0;
+        fileProgress[key].done = false;
+      } else if (progress.status === 'done') {
+        fileProgress[key].loaded = fileProgress[key].total || progress.loaded || 0;
+        fileProgress[key].done = true;
+      } else if (progress.status === 'initiate') {
+        fileProgress[key].loaded = 0;
+        fileProgress[key].total = 0;
+        fileProgress[key].done = false;
+      }
+
+      const pct = overallProgress();
+      $('progress-bar').style.width = pct + '%';
+      $('progress-pct').textContent = pct + '%';
+      $('progress-text').textContent =
+        progress.status === 'done' ? `불러옴: ${key}` : `다운로드 중: ${key}`;
+
+      renderFileList();
+    }
+
+    function createPipeline(device, runId) {
+      return pipeline(
+        'text-generation',
+        MODEL_CONFIG.id,
+        {
+          dtype: MODEL_CONFIG.dtype,
+          device,
+          progress_callback: (progress) => {
+            if (runId === loadRunId) onProgress(progress);
+          },
+        }
+      );
+    }
+
+    async function loadModel() {
+      if (isLoading) return;
+
+      const btn = $('load-btn');
+      const errBox = $('error-box');
+      const summaryErrBox = $('summarizer-error-box');
+      const runId = ++loadRunId;
+
+      summaryRunId += 1;
+      isLoading = true;
+      isSummarizing = false;
+      updateModelLabels();
+      resetSummarizerOutput(`${MODEL_CONFIG.shortLabel} 모델을 불러오는 중입니다...`);
+      resetProgress();
+
+      btn.disabled = true;
+      btn.textContent = `${MODEL_CONFIG.shortLabel} 불러오는 중...`;
+      errBox.style.display = 'none';
+      summaryErrBox.style.display = 'none';
+      $('loader-section').style.display = 'block';
+      $('summarizer-section').style.display = 'none';
+      setSummaryButtonIdle();
+
+      try {
+        await disposeGenerator();
+
+        const device = await detectDevice();
+        $('progress-text').textContent = `${MODEL_CONFIG.shortLabel} 다운로드 시작...`;
+
+        try {
+          generator = await createPipeline(device, runId);
+        } catch (err) {
+          if (device !== 'webgpu') throw err;
+
+          console.warn('WebGPU 로드 실패, wasm으로 재시도합니다:', err);
+          $('device-pill').textContent = 'CPU (wasm)';
+          $('device-pill').classList.remove('webgpu');
+          $('device-pill').classList.add('cpu');
+          $('progress-text').textContent = 'WebGPU 로드 실패, CPU(wasm)로 다시 시도합니다...';
+          generator = await createPipeline('wasm', runId);
+        }
+
+        if (runId !== loadRunId) return;
+
+        $('progress-bar').style.width = '100%';
+        $('progress-pct').textContent = '100%';
+        $('progress-text').textContent = '모델 준비 완료';
+        updateModelLabels();
+        $('loader-section').style.display = 'none';
+        $('summarizer-section').style.display = 'block';
+        btn.textContent = `${MODEL_CONFIG.shortLabel} 준비 완료`;
+        resetSummarizerOutput();
+      } catch (err) {
+        if (runId !== loadRunId) return;
+
+        console.error(err);
+        errBox.style.display = 'block';
+        errBox.textContent = '오류: ' + (err.message || String(err));
+        btn.disabled = false;
+        btn.textContent = '다시 시도';
+      } finally {
+        if (runId === loadRunId) {
+          isLoading = false;
+          setSummaryButtonIdle();
+          updateModelLabels();
+        }
+      }
+    }
+
+    function createChunk(text) {
+      return {
+        id: createId('chunk'),
+        text,
+      };
+    }
+
+    function getFilledChunks() {
+      return inputChunks
+        .map((chunk, index) => ({ ...chunk, index }))
+        .filter((chunk) => chunk.text.trim().length > 0);
+    }
+
+    function updateChunkSummary() {
+      const totalChars = inputChunks.reduce((sum, chunk) => sum + chunk.text.length, 0);
+      $('chunk-summary').textContent = `${inputChunks.length}칸 · ${totalChars}자`;
+    }
+
+    function updateChunkCount(card, text) {
+      const count = card.querySelector('.chunk-count');
+      count.textContent = `${text.length} / ${CHUNK_RANGE_LABEL} 권장`;
+      count.style.color = text.length > CHUNK_MAX_CHARS ? 'var(--warning)' : '';
+    }
+
+    function renderInputChunks(focusChunkId = null) {
+      const list = $('input-chunks');
+      list.innerHTML = '';
+
+      inputChunks.forEach((chunk, index) => {
+        const card = document.createElement('section');
+        card.className = 'chunk-card';
+
+        const header = document.createElement('div');
+        header.className = 'chunk-card-header';
+
+        const info = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'chunk-title';
+        title.textContent = `칸 ${index + 1}`;
+        const count = document.createElement('span');
+        count.className = 'chunk-count';
+        count.textContent = `${chunk.text.length} / ${CHUNK_RANGE_LABEL} 권장`;
+        info.append(title, count);
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'small-action-btn danger';
+        removeButton.type = 'button';
+        removeButton.textContent = inputChunks.length === 1 ? '비우기' : '삭제';
+        removeButton.addEventListener('click', () => removeInputChunk(chunk.id));
+
+        header.append(info, removeButton);
+
+        const textarea = document.createElement('textarea');
+        textarea.value = chunk.text;
+        textarea.placeholder = index === 0
+          ? '요약할 텍스트를 입력하거나 붙여넣으세요. 500~1000자씩 문장 단위로 나뉩니다.'
+          : '이 칸에 이어지는 원문을 입력하세요.';
+        textarea.spellcheck = false;
+        textarea.addEventListener('input', () => handleChunkInput(chunk.id, textarea));
+        textarea.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            doSummarize();
+          }
+        });
+
+        card.append(header, textarea);
+        list.appendChild(card);
+
+        if (focusChunkId === chunk.id) {
+          requestAnimationFrame(() => textarea.focus());
+        }
+      });
+
+      updateChunkSummary();
+      setSummaryButtonIdle();
+    }
+
+    function handleChunkInput(chunkId, textarea) {
+      const index = inputChunks.findIndex((chunk) => chunk.id === chunkId);
+      if (index === -1) return;
+
+      const pieces = splitTextIntoChunks(textarea.value);
+      if (pieces.length > 1) {
+        const newChunks = pieces.map(createChunk);
+        inputChunks.splice(index, 1, ...newChunks);
+        renderInputChunks(newChunks.at(-1)?.id);
+        return;
+      }
+
+      inputChunks[index].text = textarea.value;
+      updateChunkCount(textarea.closest('.chunk-card'), textarea.value);
+      updateChunkSummary();
+      setSummaryButtonIdle();
+    }
+
+    function removeInputChunk(chunkId) {
+      const index = inputChunks.findIndex((chunk) => chunk.id === chunkId);
+      if (index === -1) return;
+
+      if (inputChunks.length === 1) {
+        inputChunks[0].text = '';
+      } else {
+        inputChunks.splice(index, 1);
+      }
+
+      renderInputChunks(inputChunks[Math.max(0, index - 1)]?.id);
+    }
+
+    function normalizeInputChunks() {
+      const pieces = inputChunks.flatMap((chunk) => splitTextIntoChunks(chunk.text));
+      inputChunks = pieces.length > 0 ? pieces.map(createChunk) : [createChunk('')];
+      renderInputChunks();
+      return getFilledChunks();
+    }
+
+    function isNewline(text, index) {
+      return text[index] === '\n' || text[index] === '\r';
+    }
+
+    function expandBreakPosition(text, position, upperLimit) {
+      let next = position;
+      while (next < upperLimit && CLOSING_BREAK_CHARS.has(text[next])) {
+        next += 1;
+      }
+      while (next < upperLimit && /[ \t]/.test(text[next])) {
+        next += 1;
+      }
+      return next;
+    }
+
+    function collectBreakCandidate(text, index, searchLimit) {
+      const char = text[index];
+
+      if (isNewline(text, index)) {
+        let next = index + 1;
+        while (next < searchLimit && isNewline(text, next)) {
+          next += 1;
+        }
+
+        return { position: next, type: 'clean' };
+      }
+
+      if (SENTENCE_BREAK_CHARS.has(char)) {
+        return {
+          position: expandBreakPosition(text, index + 1, searchLimit),
+          type: 'clean',
+        };
+      }
+
+      if (PHRASE_BREAK_CHARS.has(char)) {
+        return {
+          position: expandBreakPosition(text, index + 1, searchLimit),
+          type: 'phrase',
+        };
+      }
+
+      if (/\s/.test(char)) {
+        return { position: index + 1, type: 'space' };
+      }
+
+      return null;
+    }
+
+    function chooseBoundary(before, after, closeRatio) {
+      const closeEnough = Math.floor(CHUNK_TARGET_CHARS * closeRatio);
+
+      if (before >= closeEnough) return before;
+      if (after > 0) return after;
+      if (before > 0) return before;
+      return 0;
+    }
+
+    function findStrategicBreak(text) {
+      const searchLimit = Math.min(CHUNK_MAX_CHARS, text.length);
+      let beforeClean = -1;
+      let afterClean = -1;
+      let beforePhrase = -1;
+      let afterPhrase = -1;
+      let beforeSpace = -1;
+      let afterSpace = -1;
+
+      for (let index = 0; index < searchLimit; index += 1) {
+        const candidate = collectBreakCandidate(text, index, searchLimit);
+        if (!candidate) continue;
+
+        if (candidate.position <= CHUNK_TARGET_CHARS) {
+          if (candidate.type === 'clean') beforeClean = candidate.position;
+          if (candidate.type === 'phrase') beforePhrase = candidate.position;
+          if (candidate.type === 'space') beforeSpace = candidate.position;
+        } else {
+          if (candidate.type === 'clean' && afterClean === -1) afterClean = candidate.position;
+          if (candidate.type === 'phrase' && afterPhrase === -1) afterPhrase = candidate.position;
+          if (candidate.type === 'space' && afterSpace === -1) afterSpace = candidate.position;
+        }
+
+        if (candidate.type === 'clean') {
+          index = Math.max(index, candidate.position - 1);
+        }
+      }
+
+      return chooseBoundary(beforeClean, afterClean, 0.7)
+        || chooseBoundary(beforePhrase, afterPhrase, 0.75)
+        || chooseBoundary(beforeSpace, afterSpace, 0.85)
+        || searchLimit;
+    }
+
+    function splitLongSentence(sentence) {
+      const chunks = [];
+      let remaining = sentence.trim();
+
+      while (remaining.length > CHUNK_MAX_CHARS) {
+        const breakIndex = findStrategicBreak(remaining);
+        const chunk = remaining.slice(0, breakIndex).trim();
+        if (chunk) chunks.push(chunk);
+        remaining = remaining.slice(breakIndex).trimStart();
+      }
+
+      if (remaining) chunks.push(remaining);
+      return chunks;
+    }
+
+    function splitTextIntoSentences(text) {
+      const sentences = [];
+      const normalized = text.replace(/\r\n/g, '\n').trim();
+      let start = 0;
+
+      for (let index = 0; index < normalized.length; index += 1) {
+        const char = normalized[index];
+        const isParagraphBreak = isNewline(normalized, index)
+          && isNewline(normalized, index + 1);
+        const isSentenceBreak = SENTENCE_BREAK_CHARS.has(char);
+
+        if (!isParagraphBreak && !isSentenceBreak) continue;
+
+        const end = isParagraphBreak
+          ? index
+          : expandBreakPosition(normalized, index + 1, normalized.length);
+        const sentence = normalized.slice(start, end).trim();
+        if (sentence) sentences.push(sentence);
+
+        start = end;
+        index = Math.max(index, end - 1);
+      }
+
+      const tail = normalized.slice(start).trim();
+      if (tail) sentences.push(tail);
+      return sentences;
+    }
+
+    function joinChunkText(left, right) {
+      if (!left) return right;
+      return `${left} ${right}`.replace(/\s+/g, ' ').trim();
+    }
+
+    function splitTextIntoChunks(text) {
+      const chunks = [];
+      const sentences = splitTextIntoSentences(text);
+      let current = '';
+
+      for (const sentence of sentences) {
+        const sentencePieces = sentence.length > CHUNK_MAX_CHARS
+          ? splitLongSentence(sentence)
+          : [sentence];
+
+        for (const piece of sentencePieces) {
+          if (!current) {
+            current = piece;
+            continue;
+          }
+
+          const candidate = joinChunkText(current, piece);
+          if (candidate.length <= CHUNK_MAX_CHARS && current.length < CHUNK_MIN_CHARS) {
+            current = candidate;
+          } else if (candidate.length <= CHUNK_TARGET_CHARS) {
+            current = candidate;
+          } else {
+            chunks.push(current);
+            current = piece;
+          }
+        }
+      }
+
+      if (current) chunks.push(current);
+      return chunks;
+    }
+
+    async function copyOutput() {
+      const text = $('output-box').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = $('copy-btn');
+        btn.textContent = '복사됨';
+        setTimeout(() => { btn.textContent = '복사'; }, 1500);
+      } catch (_) {}
+    }
+
+    function cleanSummaryOutput(text) {
+      return text
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/^assistant\s*[:：]\s*/i, '')
+        .replace(/^요약\s*[:：]\s*/i, '')
+        .replace(/^\s*[-*•]\s*/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function buildSummaryRequest(inputText, contextSummaries, chunkIndex, chunkTotal) {
+      const contextBlock = contextSummaries.length
+        ? `앞선 칸 요약 맥락:\n${contextSummaries.map((summary, index) => {
+            const chunkNumber = chunkIndex - contextSummaries.length + index + 1;
+            return `${chunkNumber}칸: ${summary}`;
+          }).join('\n')}\n\n`
+        : '';
+
+      const prompt = [
+        '/no_think',
+        '너는 한국어 요약 도우미다.',
+        '아래 원문 한 칸을 앞선 요약 맥락과 이어서 이해하고, 한국어 한 줄로만 요약한다.',
+        '규칙: 한 문장 또는 매우 짧은 두 문장, 목록 금지, 해설 금지, 원문에 없는 내용 금지.',
+        `현재 칸: ${chunkIndex + 1}/${chunkTotal}`,
+        '',
+        `${contextBlock}원문:\n${inputText}`,
+      ].join('\n');
+
+      return {
+        input: [{ role: 'user', content: prompt }],
+        clean: cleanSummaryOutput,
+      };
+    }
+
+    function extractGeneratedText(result) {
+      const item = Array.isArray(result) ? result[0] : result;
+      const generated = item?.generated_text ?? item?.text ?? '';
+
+      if (Array.isArray(generated)) {
+        return generated.at(-1)?.content || '';
+      }
+
+      return typeof generated === 'string' ? generated : '';
+    }
+
+    function renderOutputSegments(segments, fallbackMessage = '') {
+      const visibleText = segments.filter(Boolean).join('\n').trim();
+
+      if (!visibleText) {
+        $('output-box').className = 'output-box empty';
+        $('output-box').textContent = fallbackMessage;
+        return;
+      }
+
+      $('output-box').className = 'output-box';
+      $('output-box').textContent = visibleText;
+    }
+
+    async function summarizeChunk(chunk, chunkIndex, chunkTotal, contextSummaries, segments, runId) {
+      const request = buildSummaryRequest(chunk.text.trim(), contextSummaries, chunkIndex, chunkTotal);
+      let fullText = '';
+      const streamer = new TextStreamer(generator.tokenizer, {
+        skip_prompt: true,
+        skip_special_tokens: true,
+        callback_function: (token) => {
+          if (runId !== summaryRunId) return;
+
+          fullText += token;
+          segments[chunkIndex] = request.clean(fullText);
+          renderOutputSegments(segments, `${chunkIndex + 1}/${chunkTotal} 요약 중...`);
+        },
+      });
+
+      const result = await generator(request.input, {
+        max_new_tokens: MODEL_CONFIG.maxNewTokens,
+        do_sample: false,
+        streamer,
+      });
+
+      if (runId !== summaryRunId) return '';
+
+      if (!fullText) {
+        fullText = extractGeneratedText(result);
+      }
+
+      return request.clean(fullText).trim();
+    }
+
+    async function doSummarize() {
+      if (isSummarizing || !generator || isLoading) return;
+
+      const chunksToSummarize = normalizeInputChunks();
+      if (chunksToSummarize.length === 0) return;
+
+      const outputBox = $('output-box');
+      const summaryBtn = $('summarize-btn');
+      const copyBtn = $('copy-btn');
+      const errBox = $('summarizer-error-box');
+      const runId = ++summaryRunId;
+      const outputSegments = new Array(chunksToSummarize.length).fill('');
+      const completedSummaries = [];
+      const historyToAdd = [];
+
+      isSummarizing = true;
+      errBox.style.display = 'none';
+      copyBtn.style.display = 'none';
+      outputBox.className = 'output-box empty';
+      outputBox.textContent = '';
+
+      summaryBtn.disabled = true;
+      summaryBtn.innerHTML = '<span class="spinner"></span> 요약 중...';
+
+      try {
+        for (const [index, chunk] of chunksToSummarize.entries()) {
+          if (runId !== summaryRunId) return;
+
+          const contextSummaries = completedSummaries.slice(-2);
+          summaryBtn.innerHTML = `<span class="spinner"></span> ${index + 1}/${chunksToSummarize.length} 요약 중...`;
+          const summarizedText = await summarizeChunk(
+            chunk,
+            index,
+            chunksToSummarize.length,
+            contextSummaries,
+            outputSegments,
+            runId
+          );
+          outputSegments[index] = summarizedText;
+          completedSummaries.push(summarizedText);
+          renderOutputSegments(outputSegments, `${index + 1}/${chunksToSummarize.length} 요약 완료`);
+          historyToAdd.push({
+            source: chunk.text.trim(),
+            target: summarizedText,
+          });
+        }
+
+        if (runId !== summaryRunId) return;
+
+        const finalText = outputSegments.filter(Boolean).join('\n').trim();
+        if (!finalText) {
+          outputBox.className = 'output-box empty';
+          outputBox.textContent = '(출력이 없습니다 - 다시 시도해 주세요)';
+        } else {
+          outputBox.className = 'output-box';
+          outputBox.textContent = finalText;
+          copyBtn.style.display = 'block';
+          addHistoryEntries(historyToAdd.filter((entry) => entry.target));
+        }
+      } catch (err) {
+        if (runId !== summaryRunId) return;
+
+        console.error(err);
+        errBox.style.display = 'block';
+        errBox.textContent = '오류: ' + (err.message || String(err));
+      } finally {
+        if (runId === summaryRunId) {
+          isSummarizing = false;
+          summaryBtn.disabled = false;
+          setSummaryButtonIdle();
+        }
+      }
+    }
+
+    function loadHistoryEntries() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+          .filter((entry) => entry && typeof entry.source === 'string' && typeof entry.target === 'string')
+          .slice(0, HISTORY_LIMIT);
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveHistoryEntries() {
+      try {
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyEntries.slice(0, HISTORY_LIMIT)));
+      } catch (_) {}
+    }
+
+    function formatHistoryDate(timestamp) {
+      try {
+        return new Intl.DateTimeFormat('ko-KR', {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(timestamp));
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function addHistoryEntries(entries) {
+      const createdAt = Date.now();
+      const normalizedEntries = entries.map((entry, index) => ({
+        id: createId('history'),
+        source: entry.source,
+        target: entry.target,
+        createdAt: createdAt + index,
+      }));
+
+      historyEntries = [...normalizedEntries, ...historyEntries].slice(0, HISTORY_LIMIT);
+      saveHistoryEntries();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = $('history-list');
+      list.innerHTML = '';
+      $('history-count').textContent = `${historyEntries.length} / ${HISTORY_LIMIT}칸`;
+      $('clear-history-btn').disabled = historyEntries.length === 0;
+
+      if (historyEntries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'history-empty';
+        empty.textContent = '아직 저장된 요약이 없습니다.';
+        list.appendChild(empty);
+        return;
+      }
+
+      for (const [index, entry] of historyEntries.entries()) {
+        const item = document.createElement('article');
+        item.className = 'history-entry';
+
+        const header = document.createElement('div');
+        header.className = 'history-entry-header';
+
+        const info = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'chunk-title';
+        title.textContent = `기록 ${index + 1}`;
+        const meta = document.createElement('span');
+        meta.className = 'history-meta';
+        meta.textContent = formatHistoryDate(entry.createdAt);
+        info.append(title, meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const restoreButton = document.createElement('button');
+        restoreButton.className = 'history-action-btn';
+        restoreButton.type = 'button';
+        restoreButton.dataset.historyAction = 'restore';
+        restoreButton.dataset.historyId = entry.id;
+        restoreButton.textContent = '원문 넣기';
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'history-action-btn';
+        copyButton.type = 'button';
+        copyButton.dataset.historyAction = 'copy';
+        copyButton.dataset.historyId = entry.id;
+        copyButton.textContent = '요약 복사';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'history-action-btn danger';
+        deleteButton.type = 'button';
+        deleteButton.dataset.historyAction = 'delete';
+        deleteButton.dataset.historyId = entry.id;
+        deleteButton.textContent = '삭제';
+
+        actions.append(restoreButton, copyButton, deleteButton);
+        header.append(info, actions);
+
+        const textGrid = document.createElement('div');
+        textGrid.className = 'history-text-grid';
+
+        const sourceWrap = document.createElement('div');
+        sourceWrap.className = 'history-text';
+        const sourceLabel = document.createElement('strong');
+        sourceLabel.textContent = '원문';
+        const sourceText = document.createElement('p');
+        sourceText.textContent = entry.source;
+        sourceWrap.append(sourceLabel, sourceText);
+
+        const targetWrap = document.createElement('div');
+        targetWrap.className = 'history-text';
+        const targetLabel = document.createElement('strong');
+        targetLabel.textContent = '요약';
+        const targetText = document.createElement('p');
+        targetText.textContent = entry.target;
+        targetWrap.append(targetLabel, targetText);
+
+        textGrid.append(sourceWrap, targetWrap);
+        item.append(header, textGrid);
+        list.appendChild(item);
+      }
+    }
+
+    function restoreHistoryEntry(entry) {
+      inputChunks = splitTextIntoChunks(entry.source).map(createChunk);
+      renderInputChunks(inputChunks[0]?.id);
+      resetSummarizerOutput();
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {}
+    }
+
+    function handleHistoryAction(event) {
+      const button = event.target.closest('[data-history-action]');
+      if (!button) return;
+
+      const entry = historyEntries.find((item) => item.id === button.dataset.historyId);
+      if (!entry) return;
+
+      if (button.dataset.historyAction === 'restore') {
+        restoreHistoryEntry(entry);
+      } else if (button.dataset.historyAction === 'copy') {
+        copyText(entry.target);
+        button.textContent = '복사됨';
+        setTimeout(() => { button.textContent = '요약 복사'; }, 1500);
+      } else if (button.dataset.historyAction === 'delete') {
+        historyEntries = historyEntries.filter((item) => item.id !== entry.id);
+        saveHistoryEntries();
+        renderHistory();
+      }
+    }
+
+    $('load-btn').addEventListener('click', loadModel);
+    $('summarize-btn').addEventListener('click', doSummarize);
+    $('copy-btn').addEventListener('click', copyOutput);
+    $('add-chunk-btn').addEventListener('click', () => {
+      const chunk = createChunk('');
+      inputChunks.push(chunk);
+      renderInputChunks(chunk.id);
+    });
+    $('clear-history-btn').addEventListener('click', () => {
+      historyEntries = [];
+      saveHistoryEntries();
+      renderHistory();
+    });
+    $('history-list').addEventListener('click', handleHistoryAction);
+
+    initTheme();
+    initApp();
+  </script>
+</body>
+</html>
