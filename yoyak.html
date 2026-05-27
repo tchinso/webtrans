@@ -328,6 +328,36 @@
       line-height: 1.5;
     }
 
+    .model-mode-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 16px;
+    }
+
+    .model-mode-btn {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--ghost-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      padding: 9px 12px;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .model-mode-btn:hover:not(:disabled),
+    .model-mode-btn.active {
+      border-color: var(--accent-lime);
+      background: var(--accent-lime);
+      color: #1f2608;
+    }
+
+    .model-mode-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
     .summarizer-tools {
       display: grid;
       gap: 10px;
@@ -715,6 +745,10 @@
       padding: 10px 12px;
     }
 
+    #error-box .small-action-btn {
+      margin-top: 10px;
+    }
+
     footer {
       display: none;
     }
@@ -841,7 +875,7 @@
       <div class="app-head">
         <h1><span class="lime-chip">로컬</span> 요약기</h1>
         <p class="subtitle">
-          <strong>Qwen3 1.7B</strong> 모델을 브라우저 안에서만 실행합니다.
+          <strong id="hero-model-label">Qwen3 1.7B</strong> 모델을 브라우저 안에서만 실행합니다.
         </p>
         <span class="privacy-badge">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -863,6 +897,11 @@
         </div>
 
         <p class="model-help" id="model-help">Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.</p>
+
+        <div class="model-mode-row" aria-label="모델 선택">
+          <button class="model-mode-btn active" data-model-key="qwen3-17b" type="button">품질 1.7B</button>
+          <button class="model-mode-btn" data-model-key="qwen3-06b" type="button">저메모리 0.6B</button>
+        </div>
 
         <div class="progress-bar-wrap" aria-hidden="true">
           <div class="progress-bar" id="progress-bar"></div>
@@ -941,19 +980,33 @@
   </div>
 
   <script type="module">
-    import { pipeline, TextStreamer } from
+    import { env, pipeline, TextStreamer } from
       'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4/dist/transformers.min.js';
 
-    const MODEL_CONFIG = {
-      id: 'onnx-community/Qwen3-1.7B-ONNX',
-      label: 'Qwen3 1.7B ONNX',
-      shortLabel: 'Qwen3 1.7B',
-      href: 'https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX',
-      description: 'Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.',
-      dtype: 'q4f16',
-      sizeLabel: '~1.43 GB',
-      maxNewTokens: 256,
+    const MODEL_PRESETS = {
+      'qwen3-17b': {
+        id: 'onnx-community/Qwen3-1.7B-ONNX',
+        label: 'Qwen3 1.7B ONNX',
+        shortLabel: 'Qwen3 1.7B',
+        href: 'https://huggingface.co/onnx-community/Qwen3-1.7B-ONNX',
+        description: 'Qwen3 1.7B ONNX 모델을 사용해 긴 글을 칸별로 이어서 요약합니다.',
+        dtype: 'q4f16',
+        sizeLabel: '~1.43 GB',
+        maxNewTokens: 256,
+      },
+      'qwen3-06b': {
+        id: 'onnx-community/Qwen3-0.6B-ONNX',
+        label: 'Qwen3 0.6B ONNX',
+        shortLabel: 'Qwen3 0.6B',
+        href: 'https://huggingface.co/onnx-community/Qwen3-0.6B-ONNX',
+        description: '저메모리용 Qwen3 0.6B ONNX 모델을 사용합니다. 1.7B가 메모리 부족으로 실패할 때 선택하세요.',
+        dtype: 'q4f16',
+        sizeLabel: '~570 MB',
+        maxNewTokens: 220,
+      },
     };
+    let activeModelKey = 'qwen3-17b';
+    let MODEL_CONFIG = MODEL_PRESETS[activeModelKey];
 
     const CHUNK_MIN_CHARS = 500;
     const CHUNK_TARGET_CHARS = 800;
@@ -982,8 +1035,33 @@
 
     const $ = (id) => document.getElementById(id);
 
+    configureRuntime();
+
     function createId(prefix) {
       return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function configureRuntime() {
+      try {
+        if (env?.backends?.onnx?.webgpu) {
+          env.backends.onnx.webgpu.powerPreference = 'high-performance';
+          env.backends.onnx.webgpu.forceFallbackAdapter = false;
+        }
+
+        if (env?.backends?.onnx?.wasm) {
+          env.backends.onnx.wasm.numThreads = 1;
+        }
+      } catch (err) {
+        console.warn('런타임 설정을 적용하지 못했습니다:', err);
+      }
+    }
+
+    function renderModelModeButtons() {
+      document.querySelectorAll('[data-model-key]').forEach((button) => {
+        const isActive = button.dataset.modelKey === activeModelKey;
+        button.classList.toggle('active', isActive);
+        button.disabled = isLoading;
+      });
     }
 
     function updateModelLabels() {
@@ -992,8 +1070,24 @@
       $('footer-model-link').href = MODEL_CONFIG.href;
       $('footer-model-link').textContent = MODEL_CONFIG.id;
       $('model-help').textContent = MODEL_CONFIG.description;
+      $('hero-model-label').textContent = MODEL_CONFIG.shortLabel;
       $('load-btn').textContent = `${MODEL_CONFIG.shortLabel} 다운로드 및 불러오기 (${MODEL_CONFIG.sizeLabel})`;
       document.title = `로컬 요약기 - ${MODEL_CONFIG.shortLabel}`;
+      renderModelModeButtons();
+    }
+
+    async function setActiveModel(nextKey) {
+      if (!MODEL_PRESETS[nextKey] || nextKey === activeModelKey || isLoading) return;
+
+      activeModelKey = nextKey;
+      MODEL_CONFIG = MODEL_PRESETS[activeModelKey];
+      summaryRunId += 1;
+      isSummarizing = false;
+      await disposeGenerator();
+      resetProgress();
+      resetSummarizerOutput();
+      updateModelLabels();
+      setSummaryButtonIdle();
     }
 
     function resetProgress() {
@@ -1069,7 +1163,8 @@
 
       if (navigator.gpu) {
         try {
-          const adapter = await navigator.gpu.requestAdapter();
+          const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })
+            || await navigator.gpu.requestAdapter();
           if (adapter) {
             pill.textContent = 'WebGPU';
             pill.classList.add('webgpu');
@@ -1158,6 +1253,41 @@
       );
     }
 
+    function isMemoryAllocationError(err) {
+      const message = (err?.message || String(err)).toLowerCase();
+      return message.includes('bad_alloc')
+        || message.includes('out of memory')
+        || message.includes('allocation')
+        || message.includes('memory');
+    }
+
+    function renderLoadError(err) {
+      const errBox = $('error-box');
+      const rawMessage = err?.message || String(err);
+      const isMemoryError = isMemoryAllocationError(err);
+
+      errBox.innerHTML = '';
+      errBox.style.display = 'block';
+
+      const message = document.createElement('div');
+      message.textContent = isMemoryError
+        ? `${MODEL_CONFIG.shortLabel} 모델 파일은 내려받았지만 브라우저가 세션을 만들 메모리를 확보하지 못했습니다. 다른 탭을 닫고 다시 시도하거나, 저메모리 0.6B 모델을 사용하세요.`
+        : `오류: ${rawMessage}`;
+      errBox.appendChild(message);
+
+      if (isMemoryError && activeModelKey !== 'qwen3-06b') {
+        const fallbackButton = document.createElement('button');
+        fallbackButton.className = 'small-action-btn';
+        fallbackButton.type = 'button';
+        fallbackButton.textContent = '저메모리 0.6B로 다시 시도';
+        fallbackButton.addEventListener('click', async () => {
+          await setActiveModel('qwen3-06b');
+          loadModel();
+        });
+        errBox.appendChild(fallbackButton);
+      }
+    }
+
     async function loadModel() {
       if (isLoading) return;
 
@@ -1190,7 +1320,7 @@
         try {
           generator = await createPipeline(device, runId);
         } catch (err) {
-          if (device !== 'webgpu') throw err;
+          if (device !== 'webgpu' || isMemoryAllocationError(err)) throw err;
 
           console.warn('WebGPU 로드 실패, wasm으로 재시도합니다:', err);
           $('device-pill').textContent = 'CPU (wasm)';
@@ -1214,8 +1344,7 @@
         if (runId !== loadRunId) return;
 
         console.error(err);
-        errBox.style.display = 'block';
-        errBox.textContent = '오류: ' + (err.message || String(err));
+        renderLoadError(err);
         btn.disabled = false;
         btn.textContent = '다시 시도';
       } finally {
@@ -1526,6 +1655,7 @@
     function cleanSummaryOutput(text) {
       return text
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .trimStart()
         .replace(/^assistant\s*[:：]\s*/i, '')
         .replace(/^요약\s*[:：]\s*/i, '')
         .replace(/^\s*[-*•]\s*/, '')
@@ -1846,6 +1976,9 @@
     }
 
     $('load-btn').addEventListener('click', loadModel);
+    document.querySelectorAll('[data-model-key]').forEach((button) => {
+      button.addEventListener('click', () => setActiveModel(button.dataset.modelKey));
+    });
     $('summarize-btn').addEventListener('click', doSummarize);
     $('copy-btn').addEventListener('click', copyOutput);
     $('add-chunk-btn').addEventListener('click', () => {
