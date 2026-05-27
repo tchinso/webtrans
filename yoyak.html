@@ -1652,38 +1652,39 @@
       } catch (_) {}
     }
 
-    function cleanSummaryOutput(text) {
-      return text
+    function cleanSummaryOutput(text, contextSummaries = []) {
+      let cleaned = text
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .trimStart()
         .replace(/^assistant\s*[:：]\s*/i, '')
+        .replace(/^summary\s*[:：]\s*/i, '')
         .replace(/^요약\s*[:：]\s*/i, '')
         .replace(/^\s*[-*•]\s*/, '')
         .replace(/\s+/g, ' ')
         .trim();
+
+      for (const context of contextSummaries) {
+        const normalizedContext = context.replace(/\s+/g, ' ').trim();
+        if (!normalizedContext || !cleaned.startsWith(normalizedContext)) continue;
+
+        cleaned = cleaned
+          .slice(normalizedContext.length)
+          .replace(/^[\s/|,.;:：-]+/, '')
+          .trim();
+      }
+
+      return cleaned;
     }
 
-    function buildSummaryRequest(inputText, contextSummaries, chunkIndex, chunkTotal) {
-      const contextBlock = contextSummaries.length
-        ? `앞선 칸 요약 맥락:\n${contextSummaries.map((summary, index) => {
-            const chunkNumber = chunkIndex - contextSummaries.length + index + 1;
-            return `${chunkNumber}칸: ${summary}`;
-          }).join('\n')}\n\n`
+    function buildSummaryRequest(inputText, contextSummaries) {
+      const contextNote = contextSummaries.length
+        ? `\nRef only: ${contextSummaries.join(' / ')}`
         : '';
-
-      const prompt = [
-        '/no_think',
-        '너는 한국어 요약 도우미다.',
-        '아래 원문 한 칸을 앞선 요약 맥락과 이어서 이해하고, 한국어 한 줄로만 요약한다.',
-        '규칙: 한 문장 또는 매우 짧은 두 문장, 목록 금지, 해설 금지, 원문에 없는 내용 금지.',
-        `현재 칸: ${chunkIndex + 1}/${chunkTotal}`,
-        '',
-        `${contextBlock}원문:\n${inputText}`,
-      ].join('\n');
+      const prompt = `/no_think\nSummarize only this segment in Korean, one line. Do not repeat Ref.${contextNote}\n\n${inputText}`;
 
       return {
         input: [{ role: 'user', content: prompt }],
-        clean: cleanSummaryOutput,
+        clean: (text) => cleanSummaryOutput(text, contextSummaries),
       };
     }
 
@@ -1712,7 +1713,7 @@
     }
 
     async function summarizeChunk(chunk, chunkIndex, chunkTotal, contextSummaries, segments, runId) {
-      const request = buildSummaryRequest(chunk.text.trim(), contextSummaries, chunkIndex, chunkTotal);
+      const request = buildSummaryRequest(chunk.text.trim(), contextSummaries);
       let fullText = '';
       const streamer = new TextStreamer(generator.tokenizer, {
         skip_prompt: true,
