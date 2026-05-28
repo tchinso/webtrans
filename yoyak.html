@@ -896,12 +896,12 @@
           <span class="device-pill" id="device-pill">감지 중...</span>
         </div>
 
-        <p class="model-help" id="model-help">Gemma 3 1B IT ONNX GQA 모델을 사용해 요약 품질을 비교합니다.</p>
+        <p class="model-help" id="model-help">Gemma3 - 일반적으로 가장 균형적으로 좋음</p>
 
         <div class="model-mode-row" aria-label="모델 선택">
           <button class="model-mode-btn active" data-model-key="gemma3-1b" type="button">Gemma 3 1B</button>
           <button class="model-mode-btn" data-model-key="qwen3-06b" type="button">Qwen3 0.6B</button>
-          <button class="model-mode-btn" data-model-key="granite4-1b" type="button">Granite 1B</button>
+          <button class="model-mode-btn" data-model-key="hy-mt15-18b" type="button">HY-MT1.5 1.8B</button>
         </div>
 
         <div class="progress-bar-wrap" aria-hidden="true">
@@ -990,7 +990,7 @@
         label: 'Gemma 3 1B IT ONNX GQA',
         shortLabel: 'Gemma 3 1B',
         href: 'https://huggingface.co/onnx-community/gemma-3-1b-it-ONNX-GQA',
-        description: 'Gemma 3 1B IT ONNX GQA 모델을 사용해 요약 품질을 비교합니다.',
+        description: 'Gemma3 - 일반적으로 가장 균형적으로 좋음',
         task: 'text-generation',
         dtype: 'q4',
         sizeLabel: '~860 MB',
@@ -1003,24 +1003,25 @@
         label: 'Qwen3 0.6B ONNX',
         shortLabel: 'Qwen3 0.6B',
         href: 'https://huggingface.co/onnx-community/Qwen3-0.6B-ONNX',
-        description: '저메모리용 Qwen3 0.6B ONNX 모델을 사용합니다.',
+        description: 'Qwen3 - 중요 키워드를 잘 파악하지만, 때때로 오작동함',
         task: 'text-generation',
         dtype: 'q4f16',
         sizeLabel: '~570 MB',
         maxNewTokens: 220,
         promptPrefix: '/no_think\n',
       },
-      'granite4-1b': {
-        id: 'onnx-community/granite-4.0-1b-ONNX-web',
-        label: 'Granite 4.0 1B ONNX Web',
-        shortLabel: 'Granite 4.0 1B',
-        href: 'https://huggingface.co/onnx-community/granite-4.0-1b-ONNX-web',
-        description: 'Granite 4.0 1B ONNX Web 모델을 사용해 요약 품질을 비교합니다.',
+      'hy-mt15-18b': {
+        id: 'onnx-community/HY-MT1.5-1.8B-ONNX',
+        label: 'HY-MT1.5 1.8B ONNX',
+        shortLabel: 'HY-MT1.5 1.8B',
+        href: 'https://huggingface.co/onnx-community/HY-MT1.5-1.8B-ONNX',
+        description: 'HY-MT1.5 - 외국어 문장을 이해하는 능력이 뛰어남',
         task: 'text-generation',
         dtype: 'q4',
-        sizeLabel: '~1.8 GB',
+        sizeLabel: '~1.4 GB',
         maxNewTokens: 240,
         promptPrefix: '',
+        promptInstruction: 'Translate and summaize into Korean. up to 3 short lines. without additional explanation.',
       },
     };
     const DEFAULT_MODEL_KEY = 'gemma3-1b';
